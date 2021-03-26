@@ -5,6 +5,12 @@
 /* ethernet */
 #include <linux/if_ether.h>
 
+/* ipv4 */
+#include <linux/ip.h>
+
+/* htons */
+#include <arpa/inet.h>
+
 /* set license to gpl */
 char _license[] SEC("license") = "GPL";
 
@@ -28,7 +34,49 @@ struct bpf_elf_map SEC("maps") src_macs = {
 	.max_elem = MAX_SRC_MACS,
 };
 
-/* count all packets */
+/* map for source ipv4s */
+#define MAX_SRC_IPV4S 1024
+struct bpf_elf_map SEC("maps") src_ipv4s = {
+	.type = BPF_MAP_TYPE_HASH,
+	.size_key = sizeof(__be32),
+	.size_value = sizeof(char),
+	.max_elem = MAX_SRC_IPV4S,
+};
+
+/* filter ipv4 addresses */
+SEC("filter_ipv4")
+int _filter_ipv4(struct xdp_md *ctx)
+{
+	void *data_end = (void *)(long)ctx->data_end;
+	void *data = (void *)(long)ctx->data;
+	struct ethhdr *eth = data;
+	struct iphdr *ipv4;
+	__u32 key = 0;
+	__u64 nh_off;
+	long *value;
+
+	/* check packet length for verifier */
+	if (data + sizeof(struct ethhdr) + sizeof(struct iphdr) > data_end) {
+		return XDP_PASS;
+	}
+
+	/* check ipv4 */
+	if (eth->h_proto != htons(ETH_P_IP)) {
+		return XDP_PASS;
+	}
+	ipv4 = data + sizeof(struct ethhdr);
+
+	/* check if src ip is in src_ipv4s map */
+	value = bpf_map_lookup_elem(&src_ipv4s, &ipv4->saddr);
+	if (value) {
+		/* found src ip, drop packet */
+		return XDP_DROP;
+	}
+
+	return XDP_PASS;
+}
+
+/* filter ethernet addresses */
 SEC("filter_ethernet")
 int _filter_ethernet(struct xdp_md *ctx)
 {
