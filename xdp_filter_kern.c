@@ -8,6 +8,9 @@
 /* ipv4 */
 #include <linux/ip.h>
 
+/* ipv6 */
+#include <linux/ipv6.h>
+
 /* htons */
 #include <arpa/inet.h>
 
@@ -42,6 +45,46 @@ struct bpf_elf_map SEC("maps") src_ipv4s = {
 	.size_value = sizeof(char),
 	.max_elem = MAX_SRC_IPV4S,
 };
+
+/* map for source ipv6s */
+#define MAX_SRC_IPV6S 1024
+struct bpf_elf_map SEC("maps") src_ipv6s = {
+	.type = BPF_MAP_TYPE_HASH,
+	.size_key = sizeof(struct in6_addr),
+	.size_value = sizeof(char),
+	.max_elem = MAX_SRC_IPV6S,
+};
+
+/* filter ipv6 addresses */
+SEC("filter_ipv6")
+int _filter_ipv6(struct xdp_md *ctx)
+{
+	void *data_end = (void *)(long)ctx->data_end;
+	void *data = (void *)(long)ctx->data;
+	struct ethhdr *eth = data;
+	struct ipv6hdr *ipv6;
+	long *value;
+
+	/* check packet length for verifier */
+	if (data + sizeof(struct ethhdr) + sizeof(struct ipv6hdr) > data_end) {
+		return XDP_PASS;
+	}
+
+	/* check ipv6 */
+	if (eth->h_proto != htons(ETH_P_IPV6)) {
+		return XDP_PASS;
+	}
+	ipv6 = data + sizeof(struct ethhdr);
+
+	/* check if src ip is in src_ipv6s map */
+	value = bpf_map_lookup_elem(&src_ipv6s, &ipv6->saddr);
+	if (value) {
+		/* found src ip, drop packet */
+		return XDP_DROP;
+	}
+
+	return XDP_PASS;
+}
 
 /* filter ipv4 addresses */
 SEC("filter_ipv4")
