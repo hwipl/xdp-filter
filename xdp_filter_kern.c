@@ -51,8 +51,6 @@ int _filter_ipv4(struct xdp_md *ctx)
 	void *data = (void *)(long)ctx->data;
 	struct ethhdr *eth = data;
 	struct iphdr *ipv4;
-	__u32 key = 0;
-	__u64 nh_off;
 	long *value;
 
 	/* check packet length for verifier */
@@ -83,8 +81,6 @@ int _filter_ethernet(struct xdp_md *ctx)
 	void *data_end = (void *)(long)ctx->data_end;
 	void *data = (void *)(long)ctx->data;
 	struct ethhdr *eth = data;
-	__u32 key = 0;
-	__u64 nh_off;
 	long *value;
 
 	/* check packet length for verifier */
