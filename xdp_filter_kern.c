@@ -95,6 +95,23 @@ struct bpf_elf_map SEC("maps") src_tcps = {
 	.max_elem = MAX_SRC_TCPS,
 };
 
+/* helper for getting the layer 3 header in the ethernet packet in data */
+void *get_l3_header(void *data, void *data_end, __u16 type) {
+	struct ethhdr *eth = data;
+
+	/* check packet length for verifier */
+	if (data + sizeof(struct ethhdr) > data_end) {
+		return 0;
+	}
+
+	/* check l3 type */
+	if (htons(eth->h_proto) != type) {
+		return 0;
+	}
+
+	return data + sizeof(struct ethhdr);
+}
+
 /* helper for getting the layer 4 header in the ethernet packet in data */
 void *get_l4_header(void *data, void *data_end, __u16 type) {
 	struct ethhdr *eth = data;
@@ -196,20 +213,19 @@ int _filter_ipv6(struct xdp_md *ctx)
 {
 	void *data_end = (void *)(long)ctx->data_end;
 	void *data = (void *)(long)ctx->data;
-	struct ethhdr *eth = data;
 	struct ipv6hdr *ipv6;
 	long *value;
 
-	/* check packet length for verifier */
-	if (data + sizeof(struct ethhdr) + sizeof(struct ipv6hdr) > data_end) {
+	/* get ipv6 header */
+	ipv6 = get_l3_header(data, data_end, ETH_P_IPV6);
+	if (!ipv6) {
 		return XDP_PASS;
 	}
 
-	/* check ipv6 */
-	if (eth->h_proto != htons(ETH_P_IPV6)) {
+	/* check packet length for verifier */
+	if ((void *) (ipv6 + 1) > data_end) {
 		return XDP_PASS;
 	}
-	ipv6 = data + sizeof(struct ethhdr);
 
 	/* check if src ip is in src_ipv6s map */
 	value = bpf_map_lookup_elem(&src_ipv6s, &ipv6->saddr);
@@ -227,20 +243,19 @@ int _filter_ipv4(struct xdp_md *ctx)
 {
 	void *data_end = (void *)(long)ctx->data_end;
 	void *data = (void *)(long)ctx->data;
-	struct ethhdr *eth = data;
 	struct iphdr *ipv4;
 	long *value;
 
-	/* check packet length for verifier */
-	if (data + sizeof(struct ethhdr) + sizeof(struct iphdr) > data_end) {
+	/* get ipv4 header */
+	ipv4 = get_l3_header(data, data_end, ETH_P_IP);
+	if (!ipv4) {
 		return XDP_PASS;
 	}
 
-	/* check ipv4 */
-	if (eth->h_proto != htons(ETH_P_IP)) {
+	/* check packet length for verifier */
+	if ((void *) (ipv4 + 1) > data_end) {
 		return XDP_PASS;
 	}
-	ipv4 = data + sizeof(struct ethhdr);
 
 	/* check if src ip is in src_ipv4s map */
 	value = bpf_map_lookup_elem(&src_ipv4s, &ipv4->saddr);
