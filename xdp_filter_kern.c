@@ -11,6 +11,9 @@
 /* ipv6 */
 #include <linux/ipv6.h>
 
+/* udp */
+#include <linux/udp.h>
+
 /* htons */
 #include <arpa/inet.h>
 
@@ -70,6 +73,73 @@ struct bpf_elf_map SEC("maps") src_ipv6s = {
 	.size_value = sizeof(char),
 	.max_elem = MAX_SRC_IPV6S,
 };
+
+/* map for source udp ports */
+#define MAX_SRC_UDPS 1024
+struct bpf_elf_map SEC("maps") src_udps = {
+	.type = BPF_MAP_TYPE_HASH,
+	.size_key = sizeof(__be16),
+	.size_value = sizeof(char),
+	.max_elem = MAX_SRC_UDPS,
+};
+
+/* filter udp ports */
+SEC("filter_udp")
+int _filter_udp(struct xdp_md *ctx)
+{
+	void *data_end = (void *)(long)ctx->data_end;
+	void *data = (void *)(long)ctx->data;
+	struct ethhdr *eth = data;
+	struct ipv6hdr *ipv6;
+	struct iphdr *ipv4;
+	struct udphdr *udp;
+	long *value;
+
+	/* check packet length for verifier */
+	if (data + sizeof(struct ethhdr) + sizeof(struct ipv6hdr) > data_end) {
+		return XDP_PASS;
+	}
+
+	/* check ip and get udp header */
+	switch (htons(eth->h_proto)) {
+	case ETH_P_IP:
+		ipv4 = data + sizeof(struct ethhdr);
+
+		if (ipv4->protocol != IPPROTO_UDP) {
+			return XDP_PASS;
+		}
+
+		udp = ((void *) ipv4) + ipv4->ihl * 4;
+
+		break;
+	case ETH_P_IPV6:
+		ipv6 = data + sizeof(struct ethhdr);
+
+		if (ipv6->nexthdr != IPPROTO_UDP) {
+			return XDP_PASS;
+		}
+
+		udp = (void *) (ipv6 + 1);
+
+		break;
+	default:
+		return XDP_PASS;
+	}
+
+	/* check packet length for verifier */
+	if ((void *) (udp + 1) > data_end) {
+		return XDP_PASS;
+	}
+
+	/* check if src udp port is in src_udps map */
+	value = bpf_map_lookup_elem(&src_udps, &udp->source);
+	if (value) {
+		/* found src udp port, drop packet */
+		return XDP_DROP;
+	}
+
+	return XDP_PASS;
+}
 
 /* filter ipv6 addresses */
 SEC("filter_ipv6")
