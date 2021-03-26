@@ -28,6 +28,13 @@ struct bpf_elf_map {
 	__u32 pinning;
 };
 
+/* vlan definitions from <linux src>/include/linux/if_vlan.h */
+#define VLAN_VID_MASK 0x0fff /* VLAN Identifier */
+struct vlan_hdr {
+	__be16 h_vlan_TCI;
+	__be16 h_vlan_encapsulated_proto;
+};
+
 /* map for source macs */
 #define MAX_SRC_MACS 1024
 struct bpf_elf_map SEC("maps") src_macs = {
@@ -35,6 +42,15 @@ struct bpf_elf_map SEC("maps") src_macs = {
 	.size_key = ETH_ALEN,
 	.size_value = sizeof(char),
 	.max_elem = MAX_SRC_MACS,
+};
+
+/* map for vlan ids */
+#define MAX_VLAN_IDS 1024
+struct bpf_elf_map SEC("maps") vlan_ids = {
+	.type = BPF_MAP_TYPE_HASH,
+	.size_key = sizeof(__u16),
+	.size_value = sizeof(char),
+	.max_elem = MAX_VLAN_IDS,
 };
 
 /* map for source ipv4s */
@@ -111,6 +127,41 @@ int _filter_ipv4(struct xdp_md *ctx)
 	value = bpf_map_lookup_elem(&src_ipv4s, &ipv4->saddr);
 	if (value) {
 		/* found src ip, drop packet */
+		return XDP_DROP;
+	}
+
+	return XDP_PASS;
+}
+
+/* filter vlans */
+SEC("filter_vlan")
+int _filter_vlan(struct xdp_md *ctx)
+{
+	void *data_end = (void *)(long)ctx->data_end;
+	void *data = (void *)(long)ctx->data;
+	struct ethhdr *eth = data;
+	struct vlan_hdr *vlan;
+	__u16 vlan_id;
+	long *value;
+
+	/* check packet length for verifier */
+	if (data + sizeof(struct ethhdr) + sizeof(struct vlan_hdr) > data_end) {
+		return XDP_PASS;
+	}
+
+	/* check vlan */
+	if (eth->h_proto != htons(ETH_P_8021Q) &&
+	    eth->h_proto != htons(ETH_P_8021AD)) {
+		return XDP_PASS;
+	}
+	vlan = data + sizeof(struct ethhdr);
+
+
+	/* check if vlan is in vlan_ids map */
+	vlan_id = ntohs(vlan->h_vlan_TCI) & VLAN_VID_MASK;
+	value = bpf_map_lookup_elem(&vlan_ids, &vlan_id);
+	if (value) {
+		/* found vlan, drop packet */
 		return XDP_DROP;
 	}
 
