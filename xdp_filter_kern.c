@@ -14,6 +14,9 @@
 /* udp */
 #include <linux/udp.h>
 
+/* tcp */
+#include <linux/tcp.h>
+
 /* htons */
 #include <arpa/inet.h>
 
@@ -83,6 +86,15 @@ struct bpf_elf_map SEC("maps") src_udps = {
 	.max_elem = MAX_SRC_UDPS,
 };
 
+/* map for source tcp ports */
+#define MAX_SRC_TCPS 1024
+struct bpf_elf_map SEC("maps") src_tcps = {
+	.type = BPF_MAP_TYPE_HASH,
+	.size_key = sizeof(__be16),
+	.size_value = sizeof(char),
+	.max_elem = MAX_SRC_TCPS,
+};
+
 /* helper for getting the layer 4 header in the ethernet packet in data */
 void *get_l4_header(void *data, void *data_end, __u16 type) {
 	struct ethhdr *eth = data;
@@ -116,6 +128,36 @@ void *get_l4_header(void *data, void *data_end, __u16 type) {
 		return 0;
 	}
 
+}
+
+/* filter tcp ports */
+SEC("filter_tcp")
+int _filter_tcp(struct xdp_md *ctx)
+{
+	void *data_end = (void *)(long)ctx->data_end;
+	void *data = (void *)(long)ctx->data;
+	struct tcphdr *tcp;
+	long *value;
+
+	/* get tcp header */
+	tcp = get_l4_header(data, data_end, IPPROTO_TCP);
+	if (!tcp) {
+		return XDP_PASS;
+	}
+
+	/* check packet length for verifier */
+	if ((void *) (tcp + 1) > data_end) {
+		return XDP_PASS;
+	}
+
+	/* check if src port is in src_tcps map */
+	value = bpf_map_lookup_elem(&src_tcps, &tcp->source);
+	if (value) {
+		/* found src port, drop packet */
+		return XDP_DROP;
+	}
+
+	return XDP_PASS;
 }
 
 /* filter udp ports */
