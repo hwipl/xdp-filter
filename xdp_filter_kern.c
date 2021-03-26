@@ -83,21 +83,15 @@ struct bpf_elf_map SEC("maps") src_udps = {
 	.max_elem = MAX_SRC_UDPS,
 };
 
-/* filter udp ports */
-SEC("filter_udp")
-int _filter_udp(struct xdp_md *ctx)
-{
-	void *data_end = (void *)(long)ctx->data_end;
-	void *data = (void *)(long)ctx->data;
+/* helper for getting the layer 4 header in the ethernet packet in data */
+void *get_l4_header(void *data, void *data_end, __u16 type) {
 	struct ethhdr *eth = data;
 	struct ipv6hdr *ipv6;
 	struct iphdr *ipv4;
-	struct udphdr *udp;
-	long *value;
 
 	/* check packet length for verifier */
 	if (data + sizeof(struct ethhdr) + sizeof(struct ipv6hdr) > data_end) {
-		return XDP_PASS;
+		return 0;
 	}
 
 	/* check ip and get udp header */
@@ -105,24 +99,37 @@ int _filter_udp(struct xdp_md *ctx)
 	case ETH_P_IP:
 		ipv4 = data + sizeof(struct ethhdr);
 
-		if (ipv4->protocol != IPPROTO_UDP) {
-			return XDP_PASS;
+		if (ipv4->protocol != type) {
+			return 0;
 		}
 
-		udp = ((void *) ipv4) + ipv4->ihl * 4;
-
-		break;
+		return ((void *) ipv4) + ipv4->ihl * 4;
 	case ETH_P_IPV6:
 		ipv6 = data + sizeof(struct ethhdr);
 
-		if (ipv6->nexthdr != IPPROTO_UDP) {
-			return XDP_PASS;
+		if (ipv6->nexthdr != type) {
+			return 0;
 		}
 
-		udp = (void *) (ipv6 + 1);
-
-		break;
+		return (void *) (ipv6 + 1);
 	default:
+		return 0;
+	}
+
+}
+
+/* filter udp ports */
+SEC("filter_udp")
+int _filter_udp(struct xdp_md *ctx)
+{
+	void *data_end = (void *)(long)ctx->data_end;
+	void *data = (void *)(long)ctx->data;
+	struct udphdr *udp;
+	long *value;
+
+	/* get udp header */
+	udp = get_l4_header(data, data_end, IPPROTO_UDP);
+	if (!udp) {
 		return XDP_PASS;
 	}
 
