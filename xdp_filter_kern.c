@@ -95,6 +95,11 @@ struct bpf_elf_map SEC("maps") src_tcps = {
 	.max_elem = MAX_SRC_TCPS,
 };
 
+/* helper for checking if type is a vlan header */
+int is_vlan_header(__be16 type) {
+	return type == htons(ETH_P_8021Q) || type == htons(ETH_P_8021AD);
+}
+
 /* helper for getting the layer 3 header in the ethernet packet in data */
 void *get_l3_header(void *data, void *data_end, __u16 type) {
 	struct ethhdr *eth = data;
@@ -284,8 +289,7 @@ int _filter_vlan(struct xdp_md *ctx)
 	}
 
 	/* check vlan */
-	if (eth->h_proto != htons(ETH_P_8021Q) &&
-	    eth->h_proto != htons(ETH_P_8021AD)) {
+	if (!is_vlan_header(eth->h_proto)) {
 		return XDP_PASS;
 	}
 	vlan = data + sizeof(struct ethhdr);
