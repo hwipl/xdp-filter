@@ -116,6 +116,22 @@ void *get_first_vlan_header(void *data, void *data_end) {
 	return data + sizeof(struct ethhdr);
 }
 
+/* helper for getting the next vlan header after the vlan header in data */
+void *get_next_vlan_header(void *data, void *data_end) {
+	struct vlan_hdr *vlan = data;
+
+	/* check packet length for verifier */
+	if (data + sizeof(struct vlan_hdr) * 2 > data_end) {
+		return 0;
+	}
+
+	/* check vlan */
+	if (!is_vlan_header(vlan->h_vlan_encapsulated_proto)) {
+		return 0;
+	}
+	return data + sizeof(struct vlan_hdr);
+}
+
 /* helper for getting the layer 3 header in the ethernet packet in data */
 void *get_l3_header(void *data, void *data_end, __u16 type) {
 	struct ethhdr *eth = data;
