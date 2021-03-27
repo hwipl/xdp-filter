@@ -100,6 +100,22 @@ int is_vlan_header(__be16 type) {
 	return type == htons(ETH_P_8021Q) || type == htons(ETH_P_8021AD);
 }
 
+/* helper for getting the first vlan header in the ethernet packet in data */
+void *get_first_vlan_header(void *data, void *data_end) {
+	struct ethhdr *eth = data;
+
+	/* check packet length for verifier */
+	if (data + sizeof(struct ethhdr) + sizeof(struct vlan_hdr) > data_end) {
+		return 0;
+	}
+
+	/* check vlan */
+	if (!is_vlan_header(eth->h_proto)) {
+		return 0;
+	}
+	return data + sizeof(struct ethhdr);
+}
+
 /* helper for getting the layer 3 header in the ethernet packet in data */
 void *get_l3_header(void *data, void *data_end, __u16 type) {
 	struct ethhdr *eth = data;
