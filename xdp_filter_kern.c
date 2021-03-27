@@ -132,6 +132,47 @@ void *get_next_vlan_header(void *data, void *data_end) {
 	return data + sizeof(struct vlan_hdr);
 }
 
+/* helper for skipping vlan headers in the ethernet packet in data */
+#define MAX_VLAN_HEADERS 2
+int skip_vlan_headers(void *data, void *data_end, __be16 *type, void **next) {
+	struct ethhdr *eth = data;
+	struct vlan_hdr *vlan;
+	__u16 vlan_id;
+	long *value;
+	int i = 0;
+
+	/* check packet length for verifier */
+	if (data + sizeof(struct ethhdr) + sizeof(struct vlan_hdr) > data_end) {
+		return -1;
+	}
+
+	/* check vlan */
+	if (!is_vlan_header(eth->h_proto)) {
+		*type = eth->h_proto;
+		*next = eth + 1;
+		return 0;
+	}
+	vlan = data + sizeof(struct ethhdr);
+
+	/* skip through vlan headers */
+	while (i < MAX_VLAN_HEADERS) {
+		if (!is_vlan_header(vlan->h_vlan_encapsulated_proto)) {
+			break;
+		}
+		vlan = vlan + 1;
+
+		/* check packet length for verifier */
+		if ((void *) vlan > data_end) {
+			return -1;
+		}
+	}
+
+	/* return next type and pointer */
+	*type = vlan->h_vlan_encapsulated_proto;
+	*next = vlan + 1;
+	return 0;
+}
+
 /* helper for getting the layer 3 header in the ethernet packet in data */
 void *get_l3_header(void *data, void *data_end, __u16 type) {
 	struct ethhdr *eth = data;
