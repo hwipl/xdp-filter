@@ -14,6 +14,8 @@ VETH_HOST2="veth2"
 # vlan interfaces
 VLAN_DEV=vlan0
 VLAN_ID=100
+VLAN_STACKED_DEV=vlan1
+VLAN_STACKED_ID=200
 
 # ipv4 addresses
 IPV4_HOST1="192.168.1.1/24"
@@ -66,14 +68,24 @@ function add_vlans {
 		name $VLAN_DEV type vlan id $VLAN_ID
 	$IP netns exec $NS_HOST2 $IP link add link $VETH_HOST2 \
 		name $VLAN_DEV type vlan id $VLAN_ID
+	$IP netns exec $NS_HOST1 $IP link add link $VLAN_DEV \
+		name $VLAN_STACKED_DEV type vlan id $VLAN_STACKED_ID
+	$IP netns exec $NS_HOST2 $IP link add link $VLAN_DEV \
+		name $VLAN_STACKED_DEV type vlan id $VLAN_STACKED_ID
 
 	$IP netns exec $NS_HOST1 $IP link set $VLAN_DEV up
 	$IP netns exec $NS_HOST2 $IP link set $VLAN_DEV up
+
+	$IP netns exec $NS_HOST1 $IP link set $VLAN_STACKED_DEV up
+	$IP netns exec $NS_HOST2 $IP link set $VLAN_STACKED_DEV up
 }
 
 # delete vlan interfaces from veth interfaces
 function delete_vlans {
 	echo "Removing vlan interfaces..."
+	$IP netns exec $NS_HOST1 $IP link delete $VLAN_STACKED_DEV type vlan
+	$IP netns exec $NS_HOST2 $IP link delete $VLAN_STACKED_DEV type vlan
+
 	$IP netns exec $NS_HOST1 $IP link delete $VLAN_DEV type vlan
 	$IP netns exec $NS_HOST2 $IP link delete $VLAN_DEV type vlan
 }
