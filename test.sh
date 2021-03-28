@@ -7,6 +7,10 @@ IP=/usr/bin/ip
 NS_HOST1="xdp-filter-test-host1"
 NS_HOST2="xdp-filter-test-host2"
 
+# veth interaces
+VETH_HOST1="veth1"
+VETH_HOST2="veth2"
+
 # create testing network namespaces
 function create_namespaces {
 	echo "Creating testing network namespaces..."
@@ -24,25 +28,26 @@ function delete_namespaces {
 # add veth interfaces to network namespaces
 function add_veths {
 	echo "Adding veth interfaces..."
-	$IP netns exec $NS_HOST1 $IP link add veth1 type veth peer name veth2
+	$IP netns exec $NS_HOST1 $IP link add $VETH_HOST1 type veth \
+		peer name $VETH_HOST2
 
-	$IP netns exec $NS_HOST1 $IP link set veth2 netns $NS_HOST2
+	$IP netns exec $NS_HOST1 $IP link set $VETH_HOST2 netns $NS_HOST2
 
-	$IP netns exec $NS_HOST1 $IP link set veth1 up
-	$IP netns exec $NS_HOST2 $IP link set veth2 up
+	$IP netns exec $NS_HOST1 $IP link set $VETH_HOST1 up
+	$IP netns exec $NS_HOST2 $IP link set $VETH_HOST2 up
 }
 
 # delete veth interfaces from network namespaces
 function delete_veths {
 	echo "Removing veth interfaces..."
-	$IP netns exec $NS_HOST1 $IP link delete veth1 type veth
+	$IP netns exec $NS_HOST1 $IP link delete $VETH_HOST1 type veth
 }
 
 # add ip addresses to veth interfaces
 function add_ips {
 	echo "Adding ip addresses to veth interfaces..."
-	$IP netns exec $NS_HOST1 $IP address add 192.168.1.1/24 dev veth1
-	$IP netns exec $NS_HOST2 $IP address add 192.168.1.2/24 dev veth2
+	$IP netns exec $NS_HOST1 $IP address add 192.168.1.1/24 dev $VETH_HOST1
+	$IP netns exec $NS_HOST2 $IP address add 192.168.1.2/24 dev $VETH_HOST2
 }
 
 # set everything up
