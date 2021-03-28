@@ -11,6 +11,10 @@ NS_HOST2="xdp-filter-test-host2"
 VETH_HOST1="veth1"
 VETH_HOST2="veth2"
 
+# ip addresses
+IPV4_HOST1="192.168.1.1/24"
+IPV4_HOST2="192.168.1.2/24"
+
 # create testing network namespaces
 function create_namespaces {
 	echo "Creating testing network namespaces..."
@@ -46,8 +50,8 @@ function delete_veths {
 # add ip addresses to veth interfaces
 function add_ips {
 	echo "Adding ip addresses to veth interfaces..."
-	$IP netns exec $NS_HOST1 $IP address add 192.168.1.1/24 dev $VETH_HOST1
-	$IP netns exec $NS_HOST2 $IP address add 192.168.1.2/24 dev $VETH_HOST2
+	$IP netns exec $NS_HOST1 $IP address add $IPV4_HOST1 dev $VETH_HOST1
+	$IP netns exec $NS_HOST2 $IP address add $IPV4_HOST2 dev $VETH_HOST2
 }
 
 # set everything up
