@@ -22,6 +22,8 @@ IPV4_HOST1="192.168.1.1/24"
 IPV4_HOST2="192.168.1.2/24"
 IPV4_HOST1_VLAN="192.168.100.1/24"
 IPV4_HOST2_VLAN="192.168.100.2/24"
+IPV4_HOST1_VLAN_STACKED="192.168.200.1/24"
+IPV4_HOST2_VLAN_STACKED="192.168.200.2/24"
 
 # ipv6 addresses
 IPV6_HOST1="fd00::1/64"
@@ -98,6 +100,11 @@ function add_ips {
 
 	$IP netns exec $NS_HOST1 $IP address add $IPV4_HOST1_VLAN dev $VLAN_DEV
 	$IP netns exec $NS_HOST2 $IP address add $IPV4_HOST2_VLAN dev $VLAN_DEV
+
+	$IP netns exec $NS_HOST1 $IP address add $IPV4_HOST1_VLAN_STACKED \
+		dev $VLAN_STACKED_DEV
+	$IP netns exec $NS_HOST2 $IP address add $IPV4_HOST2_VLAN_STACKED \
+		dev $VLAN_STACKED_DEV
 
 	$IP netns exec $NS_HOST1 $IP address add $IPV6_HOST1 dev $VETH_HOST1
 	$IP netns exec $NS_HOST2 $IP address add $IPV6_HOST2 dev $VETH_HOST2
