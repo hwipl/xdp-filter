@@ -7,7 +7,7 @@ IP=/usr/bin/ip
 NS_HOST1="xdp-filter-test-host1"
 NS_HOST2="xdp-filter-test-host2"
 
-# veth interaces
+# veth interfaces
 VETH_HOST1="veth1"
 VETH_HOST2="veth2"
 
