@@ -11,6 +11,10 @@ NS_HOST2="xdp-filter-test-host2"
 VETH_HOST1="veth1"
 VETH_HOST2="veth2"
 
+# mac addresses
+MAC_HOST1="0a:bc:de:f0:00:01"
+MAC_HOST2="0a:bc:de:f0:00:02"
+
 # vlan interfaces
 VLAN_DEV=vlan0
 VLAN_ID=100
@@ -54,6 +58,9 @@ function add_veths {
 		peer name $VETH_HOST2
 
 	$IP netns exec $NS_HOST1 $IP link set $VETH_HOST2 netns $NS_HOST2
+
+	$IP netns exec $NS_HOST1 $IP link set $VETH_HOST1 address $MAC_HOST1
+	$IP netns exec $NS_HOST2 $IP link set $VETH_HOST2 address $MAC_HOST2
 
 	$IP netns exec $NS_HOST1 $IP link set $VETH_HOST1 up
 	$IP netns exec $NS_HOST2 $IP link set $VETH_HOST2 up
