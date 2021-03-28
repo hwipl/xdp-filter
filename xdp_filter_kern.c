@@ -351,22 +351,15 @@ int _filter_vlan(struct xdp_md *ctx)
 {
 	void *data_end = (void *)(long)ctx->data_end;
 	void *data = (void *)(long)ctx->data;
-	struct ethhdr *eth = data;
 	struct vlan_hdr *vlan;
 	__u16 vlan_id;
 	long *value;
 
-	/* check packet length for verifier */
-	if (data + sizeof(struct ethhdr) + sizeof(struct vlan_hdr) > data_end) {
+	/* get vlan header */
+	vlan = get_first_vlan_header(data, data_end);
+	if (!vlan) {
 		return XDP_PASS;
 	}
-
-	/* check vlan */
-	if (!is_vlan_header(eth->h_proto)) {
-		return XDP_PASS;
-	}
-	vlan = data + sizeof(struct ethhdr);
-
 
 	/* check if vlan is in vlan_ids map */
 	vlan_id = ntohs(vlan->h_vlan_TCI) & VLAN_VID_MASK;
