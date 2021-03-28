@@ -30,6 +30,8 @@ IPV6_HOST1="fd00::1/64"
 IPV6_HOST2="fd00::2/64"
 IPV6_HOST1_VLAN="fd00:100::1/64"
 IPV6_HOST2_VLAN="fd00:100::2/64"
+IPV6_HOST1_VLAN_STACKED="fd00:200::1/64"
+IPV6_HOST2_VLAN_STACKED="fd00:200::2/64"
 
 # create testing network namespaces
 function create_namespaces {
@@ -111,6 +113,11 @@ function add_ips {
 
 	$IP netns exec $NS_HOST1 $IP address add $IPV6_HOST1_VLAN dev $VLAN_DEV
 	$IP netns exec $NS_HOST2 $IP address add $IPV6_HOST2_VLAN dev $VLAN_DEV
+
+	$IP netns exec $NS_HOST1 $IP address add $IPV6_HOST1_VLAN_STACKED \
+		dev $VLAN_STACKED_DEV
+	$IP netns exec $NS_HOST2 $IP address add $IPV6_HOST2_VLAN_STACKED \
+		dev $VLAN_STACKED_DEV
 }
 
 # set everything up
