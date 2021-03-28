@@ -11,6 +11,10 @@ NS_HOST2="xdp-filter-test-host2"
 VETH_HOST1="veth1"
 VETH_HOST2="veth2"
 
+# vlan interfaces
+VLAN_DEV=vlan0
+VLAN_ID=100
+
 # ipv4 addresses
 IPV4_HOST1="192.168.1.1/24"
 IPV4_HOST2="192.168.1.2/24"
@@ -51,6 +55,25 @@ function delete_veths {
 	$IP netns exec $NS_HOST1 $IP link delete $VETH_HOST1 type veth
 }
 
+# add vlan interfaces to veth interfaces
+function add_vlans {
+	echo "Adding vlan interfaces..."
+	$IP netns exec $NS_HOST1 $IP link add link $VETH_HOST1 \
+		name $VLAN_DEV type vlan id $VLAN_ID
+	$IP netns exec $NS_HOST2 $IP link add link $VETH_HOST2 \
+		name $VLAN_DEV type vlan id $VLAN_ID
+
+	$IP netns exec $NS_HOST1 $IP link set $VLAN_DEV up
+	$IP netns exec $NS_HOST2 $IP link set $VLAN_DEV up
+}
+
+# delete vlan interfaces from veth interfaces
+function delete_vlans {
+	echo "Removing vlan interfaces..."
+	$IP netns exec $NS_HOST1 $IP link delete $VLAN_DEV type vlan
+	$IP netns exec $NS_HOST2 $IP link delete $VLAN_DEV type vlan
+}
+
 # add ip addresses to veth interfaces
 function add_ips {
 	echo "Adding ip addresses to veth interfaces..."
@@ -65,11 +88,13 @@ function add_ips {
 function setup {
 	create_namespaces
 	add_veths
+	add_vlans
 	add_ips
 }
 
 # tear everything down
 function tear_down {
+	delete_vlans
 	delete_veths
 	delete_namespaces
 }
