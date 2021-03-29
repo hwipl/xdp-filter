@@ -7,15 +7,12 @@
 /* if_nametoindex() */
 #include <net/if.h>
 
-int main(int argc, char **argv) {
-	if (argc < 4) {
-		return -1;
-	}
-
+/* load xdp section inf file and attach it to device */
+int load_xdp(const char *file, const char *section, const char *device) {
 	/* load bpf file */
 	struct bpf_prog_load_attr prog_load_attr = {
 		.prog_type      = BPF_PROG_TYPE_XDP,
-		.file		= argv[1],
+		.file		= file,
 	};
 	struct bpf_object *obj;
 	int prog_fd;
@@ -27,7 +24,7 @@ int main(int argc, char **argv) {
 
 	/* find bpf program by title/section name */
 	struct bpf_program *prog;
-	prog = bpf_object__find_program_by_title(obj, argv[2]);
+	prog = bpf_object__find_program_by_title(obj, section);
 	if (!prog) {
 		printf("Error getting xdp prog from file\n");
 		return -1;
@@ -35,7 +32,7 @@ int main(int argc, char **argv) {
 	prog_fd = bpf_program__fd(prog);
 
 	/* attach bpf program to interface */
-	int ifindex = if_nametoindex(argv[3]);
+	int ifindex = if_nametoindex(device);
 	__u32 xdp_flags = XDP_FLAGS_DRV_MODE;
 
 	if (bpf_set_link_xdp_fd(ifindex, prog_fd, xdp_flags) < 0) {
@@ -44,4 +41,11 @@ int main(int argc, char **argv) {
 	}
 
 	return 0;
+}
+
+int main(int argc, char **argv) {
+	if (argc < 4) {
+		return -1;
+	}
+	return load_xdp(argv[2], argv[3], argv[4]);
 }
