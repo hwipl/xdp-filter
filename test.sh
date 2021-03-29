@@ -37,6 +37,10 @@ IPV6_HOST2_VLAN="fd00:100::2/64"
 IPV6_HOST1_VLAN_STACKED="fd00:200::1/64"
 IPV6_HOST2_VLAN_STACKED="fd00:200::2/64"
 
+# xdp files
+XDP_USER_CMD="./xdp_filter_user"
+XDP_OBJ_FILE="xdp_filter_kern.o"
+
 # create testing network namespaces
 function create_namespaces {
 	echo "Creating testing network namespaces..."
@@ -163,6 +167,30 @@ function tear_down {
 	delete_namespaces
 }
 
+# unload current xdp program
+function unload_xdp {
+	$IP netns exec $NS_HOST2 $IP link set dev $VETH_HOST2 xdp off
+}
+
+# load a single xdp program
+function load_xdp {
+	local section=$1
+	unload_xdp
+	$IP netns exec $NS_HOST2 \
+		$XDP_USER_CMD load $XDP_OBJ_FILE "$section" $VETH_HOST2
+}
+
+# (un)load all xdp programs
+function load_all {
+	load_xdp "filter_ethernet"
+	load_xdp "filter_vlan"
+	load_xdp "filter_ipv4"
+	load_xdp "filter_ipv6"
+	load_xdp "filter_udp"
+	load_xdp "filter_tcp"
+	unload_xdp
+}
+
 # handle command line arguments
 case $1 in
 	"setup")
@@ -171,7 +199,10 @@ case $1 in
 	"teardown")
 		tear_down
 		;;
+	"loadall")
+		load_all
+		;;
 	*)
-		echo "$0 setup|teardown"
+		echo "$0 setup|teardown|loadall"
 		;;
 esac
