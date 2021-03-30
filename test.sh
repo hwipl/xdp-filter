@@ -169,7 +169,7 @@ function tear_down {
 
 # unload current xdp program
 function unload_xdp {
-	$IP netns exec $NS_HOST2 $IP link set dev $VETH_HOST2 xdp off
+	$IP netns exec $NS_HOST2 $XDP_USER_CMD unload $VETH_HOST2
 }
 
 # load a single xdp program
