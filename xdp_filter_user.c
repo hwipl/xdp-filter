@@ -58,13 +58,24 @@ int unload_xdp(const char *device) {
 }
 
 int main(int argc, char **argv) {
-	if (argc < 5) {
+	if (argc < 2) {
 		return -1;
 	}
 
 	/* load xdp program? */
 	if (!strncmp(argv[1], "load", 4)) {
+		if (argc < 5) {
+			return -1;
+		}
 		return load_xdp(argv[2], argv[3], argv[4]);
+	}
+
+	/* unload xdp program? */
+	if (!strncmp(argv[1], "unload", 6)) {
+		if (argc < 3) {
+			return -1;
+		}
+		return unload_xdp(argv[2]);
 	}
 
 	return -1;
