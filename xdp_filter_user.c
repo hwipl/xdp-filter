@@ -43,6 +43,20 @@ int load_xdp(const char *file, const char *section, const char *device) {
 	return 0;
 }
 
+/* unload current xdp program on device */
+int unload_xdp(const char *device) {
+	int ifindex = if_nametoindex(device);
+	__u32 xdp_flags = XDP_FLAGS_DRV_MODE;
+
+	/* detach bpf program from interface */
+	if (bpf_set_link_xdp_fd(ifindex, -1, xdp_flags)) {
+		printf("Error removing xdp program\n");
+		return -1;
+	}
+
+	return 0;
+}
+
 int main(int argc, char **argv) {
 	if (argc < 5) {
 		return -1;
