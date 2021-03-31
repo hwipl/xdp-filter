@@ -68,25 +68,31 @@ int parse_mac(const char* mac_string, char *mac) {
 
 /* filter ethernet frames based on source mac addresses on device */
 int filter_ethernet(const char *device, int num_macs, char **macs) {
+	/* load xdp filter_ethernet xdp program */
 	if (load_xdp("xdp_filter_kern.o", "filter_ethernet", device)) {
 		return -1;
 	}
+
+	/* get map fd */
 	int map_fd = bpf_object__find_map_fd_by_name(obj, "src_macs");
 	if (map_fd <= 0) {
 		printf("Error finding src_macs map\n");
 		unload_xdp(device);
 		return -1;
 	}
-	printf("map_fd: %d\n", map_fd);
 
+	/* parse macs and add them to map */
 	char mac[6];
 	char value = 0;
 	for (int i = 0; i < num_macs; i++) {
+		/* parse mac */
 		if (parse_mac(macs[i], mac)) {
 			printf("Error parsing mac\n");
 			unload_xdp(device);
 			return -1;
 		}
+
+		/* add mac to map */
 		if (bpf_map_update_elem(map_fd, mac, &value, BPF_ANY)) {
 			printf("Error updating map\n");
 			unload_xdp(device);
