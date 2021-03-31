@@ -57,6 +57,12 @@ int unload_xdp(const char *device) {
 	return 0;
 }
 
+/* parse mac address in mac_string and store it in mac */
+int parse_mac(const char* mac_string, char *mac) {
+	return sscanf(mac_string, "%hhx:%hhx:%hhx:%hhx:%hhx:%hhx", &mac[0],
+		      &mac[1], &mac[2], &mac[3], &mac[4], &mac[5]) != 6;
+}
+
 int main(int argc, char **argv) {
 	if (argc < 2) {
 		return -1;
