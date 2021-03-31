@@ -2,6 +2,7 @@
 
 # commands
 IP=/usr/bin/ip
+PING=/usr/bin/ping
 
 # name of network namespaces
 NS_HOST1="xdp-filter-test-host1"
@@ -191,6 +192,30 @@ function load_all {
 	unload_xdp
 }
 
+# test ethernet filtering
+function test_ethernet {
+	# clean up old setup and setup everything
+	tear_down
+	setup
+
+	# ping host 2 from host 1 (should work)
+	if ! $IP netns exec $NS_HOST1 $PING -q -c 1 ${IPV4_HOST2%/*}; then
+		echo "ERROR"
+	fi
+
+	# start ethernet filtering
+	$IP netns exec $NS_HOST2 \
+		$XDP_USER_CMD ethernet $VETH_HOST2 $MAC_HOST1
+
+	# ping host 2 from host 1 (should not work)
+	if $IP netns exec $NS_HOST1 $PING -q -c 1 ${IPV4_HOST2%/*}; then
+		echo "ERROR"
+	fi
+
+	# cleanup
+	tear_down
+}
+
 # handle command line arguments
 case $1 in
 	"setup")
@@ -202,7 +227,10 @@ case $1 in
 	"loadall")
 		load_all
 		;;
+	"ethernet")
+		test_ethernet
+		;;
 	*)
-		echo "$0 setup|teardown|loadall"
+		echo "$0 setup|teardown|loadall|ethernet"
 		;;
 esac
