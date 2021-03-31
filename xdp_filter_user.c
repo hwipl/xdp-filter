@@ -118,5 +118,13 @@ int main(int argc, char **argv) {
 		return unload_xdp(argv[2]);
 	}
 
+	/* filter ethernet? */
+	if (!strncmp(argv[1], "ethernet", 8)) {
+		if (argc < 4) {
+			return -1;
+		}
+		return filter_ethernet(argv[2], argc - 3, argv + 3);
+	}
+
 	return -1;
 }
