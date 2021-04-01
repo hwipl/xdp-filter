@@ -8,6 +8,9 @@
 /* if_nametoindex() */
 #include <net/if.h>
 
+/* atoi() */
+#include <stdlib.h>
+
 /* bpf object */
 struct bpf_object *obj;
 
@@ -57,6 +60,17 @@ int unload_xdp(const char *device) {
 		return -1;
 	}
 
+	return 0;
+}
+
+/* parse vlan id in vlan_string and store it in vlan */
+int parse_vlan(const char *vlan_string, __u16 *vlan) {
+	int i = atoi(vlan_string);
+	if (i < 1 || i > 4095) {
+		return -1;
+	}
+
+	*vlan = i;
 	return 0;
 }
 
