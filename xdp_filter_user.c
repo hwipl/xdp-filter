@@ -183,5 +183,13 @@ int main(int argc, char **argv) {
 		return filter_ethernet(argv[2], argc - 3, argv + 3);
 	}
 
+	/* filter vlan? */
+	if (!strncmp(argv[1], "vlan", 4)) {
+		if (argc < 4) {
+			return -1;
+		}
+		return filter_vlan(argv[2], argc - 3, argv + 3);
+	}
+
 	return -1;
 }
