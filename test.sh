@@ -4,6 +4,9 @@
 IP=/usr/bin/ip
 PING=/usr/bin/ping
 
+# build command
+BUILD="./build.sh"
+
 # name of network namespaces
 NS_HOST1="xdp-filter-test-host1"
 NS_HOST2="xdp-filter-test-host2"
@@ -194,6 +197,9 @@ function load_all {
 
 # test ethernet filtering
 function test_ethernet {
+	# build everything
+	$BUILD
+
 	# clean up old setup and setup everything
 	tear_down
 	setup
