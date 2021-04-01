@@ -74,6 +74,43 @@ int parse_vlan(const char *vlan_string, __u16 *vlan) {
 	return 0;
 }
 
+/* filter packets based on vlan ids on device */
+int filter_vlan(const char *device, int num_vlans, char **vlans) {
+	/* load xdp filter_vlan xdp program */
+	if (load_xdp("xdp_filter_kern.o", "filter_vlan", device)) {
+		return -1;
+	}
+
+	/* get map fd */
+	int map_fd = bpf_object__find_map_fd_by_name(obj, "vlan_ids");
+	if (map_fd <= 0) {
+		printf("Error finding vlan_ids map\n");
+		unload_xdp(device);
+		return -1;
+	}
+
+	/* parse vlans and add them to map */
+	__u16 vlan;
+	char value = 0;
+	for (int i = 0; i < num_vlans; i++) {
+		/* parse vlan */
+		if (parse_vlan(vlans[i], &vlan)) {
+			printf("Error parsing vlan\n");
+			unload_xdp(device);
+			return -1;
+		}
+
+		/* add vlan to map */
+		if (bpf_map_update_elem(map_fd, &vlan, &value, BPF_ANY)) {
+			printf("Error updating map\n");
+			unload_xdp(device);
+			return -1;
+		}
+	}
+
+	return 0;
+}
+
 /* parse mac address in mac_string and store it in mac */
 int parse_mac(const char* mac_string, char *mac) {
 	return sscanf(mac_string, "%hhx:%hhx:%hhx:%hhx:%hhx:%hhx", &mac[0],
