@@ -222,6 +222,33 @@ function test_ethernet {
 	tear_down
 }
 
+# test vlan filtering
+function test_vlan {
+	# build everything
+	$BUILD
+
+	# clean up old setup and setup everything
+	tear_down
+	setup
+
+	# ping host 2 from host 1 (should work)
+	if ! $IP netns exec $NS_HOST1 $PING -q -c 1 ${IPV4_HOST2_VLAN%/*}; then
+		echo "ERROR"
+	fi
+
+	# start ethernet filtering
+	$IP netns exec $NS_HOST2 \
+		$XDP_USER_CMD vlan $VETH_HOST2 $VLAN_ID
+
+	# ping host 2 from host 1 (should not work)
+	if $IP netns exec $NS_HOST1 $PING -q -c 1 ${IPV4_HOST2_VLAN%/*}; then
+		echo "ERROR"
+	fi
+
+	# cleanup
+	tear_down
+}
+
 # handle command line arguments
 case $1 in
 	"setup")
@@ -236,7 +263,10 @@ case $1 in
 	"ethernet")
 		test_ethernet
 		;;
+	"vlan")
+		test_vlan
+		;;
 	*)
-		echo "$0 setup|teardown|loadall|ethernet"
+		echo "$0 setup|teardown|loadall|ethernet|vlan"
 		;;
 esac
