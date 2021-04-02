@@ -240,7 +240,7 @@ function test_vlan {
 		echo "ERROR"
 	fi
 
-	# start ethernet filtering
+	# start vlan filtering
 	$IP netns exec $NS_HOST2 \
 		$XDP_USER_CMD vlan $VETH_HOST2 $VLAN_ID $VLAN_STACKED_ID
 
