@@ -235,13 +235,21 @@ function test_vlan {
 	if ! $IP netns exec $NS_HOST1 $PING -q -c 1 ${IPV4_HOST2_VLAN%/*}; then
 		echo "ERROR"
 	fi
+	if ! $IP netns exec $NS_HOST1 $PING -q -c 1 \
+		${IPV4_HOST2_VLAN_STACKED%/*}; then
+		echo "ERROR"
+	fi
 
 	# start ethernet filtering
 	$IP netns exec $NS_HOST2 \
-		$XDP_USER_CMD vlan $VETH_HOST2 $VLAN_ID
+		$XDP_USER_CMD vlan $VETH_HOST2 $VLAN_ID $VLAN_STACKED_ID
 
 	# ping host 2 from host 1 (should not work)
 	if $IP netns exec $NS_HOST1 $PING -q -c 1 ${IPV4_HOST2_VLAN%/*}; then
+		echo "ERROR"
+	fi
+	if $IP netns exec $NS_HOST1 $PING -q -c 1 \
+		${IPV4_HOST2_VLAN_STACKED%/*}; then
 		echo "ERROR"
 	fi
 
