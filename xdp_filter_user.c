@@ -76,6 +76,43 @@ int parse_ipv4(const char *ip_string, __be32 *ip) {
 	return 0;
 }
 
+/* filter packets based on source ipv4 addresses on device */
+int filter_ipv4(const char *device, int num_ips, char **ips) {
+	/* load xdp filter_ipv4 xdp program */
+	if (load_xdp("xdp_filter_kern.o", "filter_ipv4", device)) {
+		return -1;
+	}
+
+	/* get map fd */
+	int map_fd = bpf_object__find_map_fd_by_name(obj, "src_ipv4s");
+	if (map_fd <= 0) {
+		printf("Error finding src_ipv4s map\n");
+		unload_xdp(device);
+		return -1;
+	}
+
+	/* parse ipv4s and add them to map */
+	__be32 ip;
+	char value = 0;
+	for (int i = 0; i < num_ips; i++) {
+		/* parse vlan */
+		if (parse_ipv4(ips[i], &ip)) {
+			printf("Error parsing ipv4 address\n");
+			unload_xdp(device);
+			return -1;
+		}
+
+		/* add ip to map */
+		if (bpf_map_update_elem(map_fd, &ip, &value, BPF_ANY)) {
+			printf("Error updating map\n");
+			unload_xdp(device);
+			return -1;
+		}
+	}
+
+	return 0;
+}
+
 /* parse vlan id in vlan_string and store it in vlan */
 int parse_vlan(const char *vlan_string, __u16 *vlan) {
 	int i = atoi(vlan_string);
