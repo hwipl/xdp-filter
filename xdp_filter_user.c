@@ -11,6 +11,9 @@
 /* atoi() */
 #include <stdlib.h>
 
+/* inet_aton() */
+#include <arpa/inet.h>
+
 /* bpf object */
 struct bpf_object *obj;
 
@@ -60,6 +63,16 @@ int unload_xdp(const char *device) {
 		return -1;
 	}
 
+	return 0;
+}
+
+/* parse ipv4 address in ip_string and store it in ip */
+int parse_ipv4(const char *ip_string, __be32 *ip) {
+	struct in_addr i;
+	if (!inet_aton(ip_string, &i)) {
+		return -1;
+	}
+	*ip = i.s_addr;
 	return 0;
 }
 
