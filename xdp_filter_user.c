@@ -241,5 +241,13 @@ int main(int argc, char **argv) {
 		return filter_vlan(argv[2], argc - 3, argv + 3);
 	}
 
+	/* filter ipv4? */
+	if (!strncmp(argv[1], "ipv4", 4)) {
+		if (argc < 4) {
+			return -1;
+		}
+		return filter_ipv4(argv[2], argc - 3, argv + 3);
+	}
+
 	return -1;
 }
