@@ -353,6 +353,39 @@ function test_udp {
 	tear_down
 }
 
+# test tcp filtering
+function test_tcp {
+	# build everything
+	$BUILD
+
+	# clean up old setup and setup everything
+	tear_down
+	setup
+
+	# test connection to host 2 from host 1 (should work)
+	$IP netns exec $NS_HOST2 $NC -l -p $PORT -k > /dev/null &
+	local pid=$!
+	if ! $IP netns exec $NS_HOST1 \
+		$NC -4vz ${IPV4_HOST2%/*} $PORT; then
+		echo "ERROR"
+	fi
+	$IP netns exec $NS_HOST2 $KILL $pid
+
+	# start udp filtering
+	$IP netns exec $NS_HOST2 $XDP_USER_CMD tcp $VETH_HOST2 $PORT
+
+	# test connection to host 2 from host 1 (should not work)
+	$IP netns exec $NS_HOST2 $NC -l -p $PORT -k > /dev/null &
+	local pid=$!
+	if $IP netns exec $NS_HOST1 \
+		$NC -4vz -p $PORT -w 3 ${IPV4_HOST2%/*} $PORT; then
+		echo "ERROR"
+	fi
+	$IP netns exec $NS_HOST2 $KILL $pid
+
+	# cleanup
+	tear_down
+}
 # handle command line arguments
 case $1 in
 	"setup")
@@ -378,6 +411,9 @@ case $1 in
 		;;
 	"udp")
 		test_udp
+		;;
+	"tcp")
+		test_tcp
 		;;
 	*)
 		echo "$0 setup|teardown|loadall|ethernet|vlan"
