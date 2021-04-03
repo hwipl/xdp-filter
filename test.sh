@@ -284,6 +284,37 @@ function test_ipv4 {
 	tear_down
 }
 
+# test ipv6 filtering
+function test_ipv6 {
+	# build everything
+	$BUILD
+
+	# clean up old setup and setup everything
+	tear_down
+	setup
+
+	# wait for dad
+	sleep 3
+
+	# ping host 2 from host 1 (should work)
+	echo ${IPV6_HOST2%/*}
+	if ! $IP netns exec $NS_HOST1 $PING -q -c 1 ${IPV6_HOST2%/*}; then
+		echo "ERROR"
+	fi
+
+	# start ipv6 filtering
+	$IP netns exec $NS_HOST2 \
+		$XDP_USER_CMD ipv6 $VETH_HOST2 ${IPV6_HOST1%/*}
+
+	# ping host 2 from host 1 (should not work)
+	if $IP netns exec $NS_HOST1 $PING -q -c 1 ${IPV6_HOST2%/*}; then
+		echo "ERROR"
+	fi
+
+	# cleanup
+	tear_down
+}
+
 # handle command line arguments
 case $1 in
 	"setup")
@@ -303,6 +334,9 @@ case $1 in
 		;;
 	"ipv4")
 		test_ipv4
+		;;
+	"ipv6")
+		test_ipv6
 		;;
 	*)
 		echo "$0 setup|teardown|loadall|ethernet|vlan"
