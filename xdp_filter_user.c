@@ -66,6 +66,14 @@ int unload_xdp(const char *device) {
 	return 0;
 }
 
+/* parse ipv6 address in ip_string and store it in ip */
+int parse_ipv6(const char *ip_string, struct in6_addr *ip) {
+	if (inet_pton(AF_INET6, ip_string, ip) != 1) {
+		return -1;
+	}
+	return 0;
+}
+
 /* parse ipv4 address in ip_string and store it in ip */
 int parse_ipv4(const char *ip_string, __be32 *ip) {
 	struct in_addr i;
