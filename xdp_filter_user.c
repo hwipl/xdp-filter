@@ -77,6 +77,43 @@ int parse_port(const char *port_string, __be16 *port) {
 	return 0;
 }
 
+/* filter packets based on source tcp ports on device */
+int filter_tcp(const char *device, int num_ports, char **ports) {
+	/* load xdp filter_udp xdp program */
+	if (load_xdp("xdp_filter_kern.o", "filter_tcp", device)) {
+		return -1;
+	}
+
+	/* get map fd */
+	int map_fd = bpf_object__find_map_fd_by_name(obj, "src_tcps");
+	if (map_fd <= 0) {
+		printf("Error finding src_tcps map\n");
+		unload_xdp(device);
+		return -1;
+	}
+
+	/* parse tcp ports and add them to map */
+	__be16 port;
+	char value = 0;
+	for (int i = 0; i < num_ports; i++) {
+		/* parse port */
+		if (parse_port(ports[i], &port)) {
+			printf("Error parsing tcp port\n");
+			unload_xdp(device);
+			return -1;
+		}
+
+		/* add port to map */
+		if (bpf_map_update_elem(map_fd, &port, &value, BPF_ANY)) {
+			printf("Error updating map\n");
+			unload_xdp(device);
+			return -1;
+		}
+	}
+
+	return 0;
+}
+
 /* filter packets based on source udp ports on device */
 int filter_udp(const char *device, int num_ports, char **ports) {
 	/* load xdp filter_udp xdp program */
