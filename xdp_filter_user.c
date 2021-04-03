@@ -66,6 +66,17 @@ int unload_xdp(const char *device) {
 	return 0;
 }
 
+/* parse port number in port_string and store it in port */
+int parse_port(const char *port_string, __be16 *port) {
+	int p = atoi(port_string);
+	if (p < 1 || p > 65535) {
+		return -1;
+	}
+
+	*port = ntohs(p);
+	return 0;
+}
+
 /* parse ipv6 address in ip_string and store it in ip */
 int parse_ipv6(const char *ip_string, struct in6_addr *ip) {
 	if (inet_pton(AF_INET6, ip_string, ip) != 1) {
