@@ -350,5 +350,13 @@ int main(int argc, char **argv) {
 		return filter_ipv6(argv[2], argc - 3, argv + 3);
 	}
 
+	/* filter udp? */
+	if (!strncmp(argv[1], "udp", 3)) {
+		if (argc < 4) {
+			return -1;
+		}
+		return filter_udp(argv[2], argc - 3, argv + 3);
+	}
+
 	return -1;
 }
