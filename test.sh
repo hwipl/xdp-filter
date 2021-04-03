@@ -297,7 +297,6 @@ function test_ipv6 {
 	sleep 3
 
 	# ping host 2 from host 1 (should work)
-	echo ${IPV6_HOST2%/*}
 	if ! $IP netns exec $NS_HOST1 $PING -q -c 1 ${IPV6_HOST2%/*}; then
 		echo "ERROR"
 	fi
