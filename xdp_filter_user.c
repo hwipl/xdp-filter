@@ -395,5 +395,13 @@ int main(int argc, char **argv) {
 		return filter_udp(argv[2], argc - 3, argv + 3);
 	}
 
+	/* filter tcp? */
+	if (!strncmp(argv[1], "tcp", 3)) {
+		if (argc < 4) {
+			return -1;
+		}
+		return filter_tcp(argv[2], argc - 3, argv + 3);
+	}
+
 	return -1;
 }
