@@ -3,6 +3,8 @@
 # commands
 IP=/usr/bin/ip
 PING=/usr/bin/ping
+NC=/usr/bin/nc
+KILL=/usr/bin/kill
 
 # build command
 BUILD="./build.sh"
@@ -40,6 +42,9 @@ IPV6_HOST1_VLAN="fd00:100::1/64"
 IPV6_HOST2_VLAN="fd00:100::2/64"
 IPV6_HOST1_VLAN_STACKED="fd00:200::1/64"
 IPV6_HOST2_VLAN_STACKED="fd00:200::2/64"
+
+# tcp/udp port
+PORT=2000
 
 # xdp files
 XDP_USER_CMD="./xdp_filter_user"
@@ -314,6 +319,40 @@ function test_ipv6 {
 	tear_down
 }
 
+# test udp filtering
+function test_udp {
+	# build everything
+	$BUILD
+
+	# clean up old setup and setup everything
+	tear_down
+	setup
+
+	# test connection to host 2 from host 1 (should work)
+	$IP netns exec $NS_HOST2 $NC -l -p $PORT -k -u > /dev/null &
+	local pid=$!
+	if ! $IP netns exec $NS_HOST1 \
+		$NC -4uvz ${IPV4_HOST2%/*} $PORT; then
+		echo "ERROR"
+	fi
+	$IP netns exec $NS_HOST2 $KILL $pid
+
+	# start udp filtering
+	$IP netns exec $NS_HOST2 $XDP_USER_CMD udp $VETH_HOST2 $PORT
+
+	# test connection to host 2 from host 1 (should not work)
+	$IP netns exec $NS_HOST2 $NC -l -p $PORT -k -u > /dev/null &
+	local pid=$!
+	if $IP netns exec $NS_HOST1 \
+		$NC -4uvz -p $PORT ${IPV4_HOST2%/*} $PORT; then
+		echo "ERROR"
+	fi
+	$IP netns exec $NS_HOST2 $KILL $pid
+
+	# cleanup
+	tear_down
+}
+
 # handle command line arguments
 case $1 in
 	"setup")
@@ -336,6 +375,9 @@ case $1 in
 		;;
 	"ipv6")
 		test_ipv6
+		;;
+	"udp")
+		test_udp
 		;;
 	*)
 		echo "$0 setup|teardown|loadall|ethernet|vlan"
