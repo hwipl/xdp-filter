@@ -77,6 +77,43 @@ int parse_port(const char *port_string, __be16 *port) {
 	return 0;
 }
 
+/* filter packets based on source udp ports on device */
+int filter_udp(const char *device, int num_ports, char **ports) {
+	/* load xdp filter_udp xdp program */
+	if (load_xdp("xdp_filter_kern.o", "filter_udp", device)) {
+		return -1;
+	}
+
+	/* get map fd */
+	int map_fd = bpf_object__find_map_fd_by_name(obj, "src_udps");
+	if (map_fd <= 0) {
+		printf("Error finding src_udps map\n");
+		unload_xdp(device);
+		return -1;
+	}
+
+	/* parse udp ports and add them to map */
+	__be16 port;
+	char value = 0;
+	for (int i = 0; i < num_ports; i++) {
+		/* parse port */
+		if (parse_port(ports[i], &port)) {
+			printf("Error parsing udp port\n");
+			unload_xdp(device);
+			return -1;
+		}
+
+		/* add port to map */
+		if (bpf_map_update_elem(map_fd, &port, &value, BPF_ANY)) {
+			printf("Error updating map\n");
+			unload_xdp(device);
+			return -1;
+		}
+	}
+
+	return 0;
+}
+
 /* parse ipv6 address in ip_string and store it in ip */
 int parse_ipv6(const char *ip_string, struct in6_addr *ip) {
 	if (inet_pton(AF_INET6, ip_string, ip) != 1) {
