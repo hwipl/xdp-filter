@@ -95,7 +95,7 @@ int filter_ipv4(const char *device, int num_ips, char **ips) {
 	__be32 ip;
 	char value = 0;
 	for (int i = 0; i < num_ips; i++) {
-		/* parse vlan */
+		/* parse ip */
 		if (parse_ipv4(ips[i], &ip)) {
 			printf("Error parsing ipv4 address\n");
 			unload_xdp(device);
