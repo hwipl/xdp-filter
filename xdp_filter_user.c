@@ -11,7 +11,7 @@
 /* atoi() */
 #include <stdlib.h>
 
-/* inet_aton() */
+/* inet_pton() */
 #include <arpa/inet.h>
 
 /* bpf object */
@@ -69,7 +69,7 @@ int unload_xdp(const char *device) {
 /* parse ipv4 address in ip_string and store it in ip */
 int parse_ipv4(const char *ip_string, __be32 *ip) {
 	struct in_addr i;
-	if (!inet_aton(ip_string, &i)) {
+	if (inet_pton(AF_INET, ip_string, &i) != 1) {
 		return -1;
 	}
 	*ip = i.s_addr;
