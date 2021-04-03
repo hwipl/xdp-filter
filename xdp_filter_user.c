@@ -74,6 +74,43 @@ int parse_ipv6(const char *ip_string, struct in6_addr *ip) {
 	return 0;
 }
 
+/* filter packets based on source ipv6 addresses on device */
+int filter_ipv6(const char *device, int num_ips, char **ips) {
+	/* load xdp filter_ipv6 xdp program */
+	if (load_xdp("xdp_filter_kern.o", "filter_ipv6", device)) {
+		return -1;
+	}
+
+	/* get map fd */
+	int map_fd = bpf_object__find_map_fd_by_name(obj, "src_ipv6s");
+	if (map_fd <= 0) {
+		printf("Error finding src_ipv6s map\n");
+		unload_xdp(device);
+		return -1;
+	}
+
+	/* parse ipv6s and add them to map */
+	struct in6_addr ip;
+	char value = 0;
+	for (int i = 0; i < num_ips; i++) {
+		/* parse ip */
+		if (parse_ipv6(ips[i], &ip)) {
+			printf("Error parsing ipv6 address\n");
+			unload_xdp(device);
+			return -1;
+		}
+
+		/* add ip to map */
+		if (bpf_map_update_elem(map_fd, &ip, &value, BPF_ANY)) {
+			printf("Error updating map\n");
+			unload_xdp(device);
+			return -1;
+		}
+	}
+
+	return 0;
+}
+
 /* parse ipv4 address in ip_string and store it in ip */
 int parse_ipv4(const char *ip_string, __be32 *ip) {
 	struct in_addr i;
