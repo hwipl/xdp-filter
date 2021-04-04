@@ -206,7 +206,7 @@ function prepare_test {
 	$BUILD
 
 	# clean up old setup and setup everything
-	tear_down
+	tear_down 2> /dev/null
 	setup
 }
 
