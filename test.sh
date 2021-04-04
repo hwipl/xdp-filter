@@ -213,8 +213,18 @@ function prepare_test {
 # ping test helper
 function test_ping {
 	local ip=$1
+	local expect=$2
+
+	# run ping test
 	$IP netns exec $NS_HOST1 $PING -q -c 1 "${ip%/*}" > /dev/null
-	return $?
+	local rc=$?
+
+	# check result and compare it with expected value
+	if [[ $rc == "$expect" ]]; then
+		echo "OK"
+	else
+		echo "ERROR"
+	fi
 }
 
 # test ethernet filtering
@@ -223,18 +233,14 @@ function test_ethernet {
 	prepare_test
 
 	# ping host 2 from host 1 (should work)
-	if ! test_ping $IPV4_HOST2; then
-		echo "ERROR"
-	fi
+	test_ping $IPV4_HOST2 0
 
 	# start ethernet filtering
 	$IP netns exec $NS_HOST2 \
 		$XDP_USER_CMD ethernet $VETH_HOST2 $MAC_HOST1
 
 	# ping host 2 from host 1 (should not work)
-	if test_ping $IPV4_HOST2; then
-		echo "ERROR"
-	fi
+	test_ping $IPV4_HOST2 1
 
 	# cleanup
 	tear_down
@@ -246,24 +252,16 @@ function test_vlan {
 	prepare_test
 
 	# ping host 2 from host 1 (should work)
-	if ! test_ping $IPV4_HOST2_VLAN; then
-		echo "ERROR"
-	fi
-	if ! test_ping $IPV4_HOST2_VLAN_STACKED; then
-		echo "ERROR"
-	fi
+	test_ping $IPV4_HOST2_VLAN 0
+	test_ping $IPV4_HOST2_VLAN_STACKED 0
 
 	# start vlan filtering
 	$IP netns exec $NS_HOST2 \
 		$XDP_USER_CMD vlan $VETH_HOST2 $VLAN_ID $VLAN_STACKED_ID
 
 	# ping host 2 from host 1 (should not work)
-	if test_ping $IPV4_HOST2_VLAN; then
-		echo "ERROR"
-	fi
-	if test_ping $IPV4_HOST2_VLAN_STACKED; then
-		echo "ERROR"
-	fi
+	test_ping $IPV4_HOST2_VLAN 1
+	test_ping $IPV4_HOST2_VLAN_STACKED 1
 
 	# cleanup
 	tear_down
@@ -275,18 +273,14 @@ function test_ipv4 {
 	prepare_test
 
 	# ping host 2 from host 1 (should work)
-	if ! test_ping $IPV4_HOST2; then
-		echo "ERROR"
-	fi
+	test_ping $IPV4_HOST2 0
 
 	# start ipv4 filtering
 	$IP netns exec $NS_HOST2 \
 		$XDP_USER_CMD ipv4 $VETH_HOST2 ${IPV4_HOST1%/*}
 
 	# ping host 2 from host 1 (should not work)
-	if test_ping $IPV4_HOST2; then
-		echo "ERROR"
-	fi
+	test_ping $IPV4_HOST2 1
 
 	# cleanup
 	tear_down
@@ -301,18 +295,14 @@ function test_ipv6 {
 	sleep 3
 
 	# ping host 2 from host 1 (should work)
-	if ! test_ping $IPV6_HOST2; then
-		echo "ERROR"
-	fi
+	test_ping $IPV6_HOST2 0
 
 	# start ipv6 filtering
 	$IP netns exec $NS_HOST2 \
 		$XDP_USER_CMD ipv6 $VETH_HOST2 ${IPV6_HOST1%/*}
 
 	# ping host 2 from host 1 (should not work)
-	if test_ping $IPV6_HOST2; then
-		echo "ERROR"
-	fi
+	test_ping $IPV6_HOST2 1
 
 	# cleanup
 	tear_down
