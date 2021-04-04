@@ -372,6 +372,17 @@ function test_tcp {
 	# cleanup
 	tear_down
 }
+
+# run all tests
+function test_all {
+	test_ethernet
+	test_vlan
+	test_ipv4
+	test_ipv6
+	test_udp
+	test_tcp
+}
+
 # handle command line arguments
 case $1 in
 	"setup")
@@ -400,6 +411,9 @@ case $1 in
 		;;
 	"tcp")
 		test_tcp
+		;;
+	"all")
+		test_all
 		;;
 	*)
 		echo "$0 setup|teardown|loadall|ethernet|vlan"
