@@ -210,13 +210,20 @@ function prepare_test {
 	setup
 }
 
+# ping test helper
+function test_ping {
+	local ip=$1
+	$IP netns exec $NS_HOST1 $PING -q -c 1 "${ip%/*}" > /dev/null
+	return $?
+}
+
 # test ethernet filtering
 function test_ethernet {
 	# prepare
 	prepare_test
 
 	# ping host 2 from host 1 (should work)
-	if ! $IP netns exec $NS_HOST1 $PING -q -c 1 ${IPV4_HOST2%/*}; then
+	if ! test_ping $IPV4_HOST2; then
 		echo "ERROR"
 	fi
 
@@ -225,7 +232,7 @@ function test_ethernet {
 		$XDP_USER_CMD ethernet $VETH_HOST2 $MAC_HOST1
 
 	# ping host 2 from host 1 (should not work)
-	if $IP netns exec $NS_HOST1 $PING -q -c 1 ${IPV4_HOST2%/*}; then
+	if test_ping $IPV4_HOST2; then
 		echo "ERROR"
 	fi
 
@@ -239,11 +246,10 @@ function test_vlan {
 	prepare_test
 
 	# ping host 2 from host 1 (should work)
-	if ! $IP netns exec $NS_HOST1 $PING -q -c 1 ${IPV4_HOST2_VLAN%/*}; then
+	if ! test_ping $IPV4_HOST2_VLAN; then
 		echo "ERROR"
 	fi
-	if ! $IP netns exec $NS_HOST1 $PING -q -c 1 \
-		${IPV4_HOST2_VLAN_STACKED%/*}; then
+	if ! test_ping $IPV4_HOST2_VLAN_STACKED; then
 		echo "ERROR"
 	fi
 
@@ -252,11 +258,10 @@ function test_vlan {
 		$XDP_USER_CMD vlan $VETH_HOST2 $VLAN_ID $VLAN_STACKED_ID
 
 	# ping host 2 from host 1 (should not work)
-	if $IP netns exec $NS_HOST1 $PING -q -c 1 ${IPV4_HOST2_VLAN%/*}; then
+	if test_ping $IPV4_HOST2_VLAN; then
 		echo "ERROR"
 	fi
-	if $IP netns exec $NS_HOST1 $PING -q -c 1 \
-		${IPV4_HOST2_VLAN_STACKED%/*}; then
+	if test_ping $IPV4_HOST2_VLAN_STACKED; then
 		echo "ERROR"
 	fi
 
@@ -270,7 +275,7 @@ function test_ipv4 {
 	prepare_test
 
 	# ping host 2 from host 1 (should work)
-	if ! $IP netns exec $NS_HOST1 $PING -q -c 1 ${IPV4_HOST2%/*}; then
+	if ! test_ping $IPV4_HOST2; then
 		echo "ERROR"
 	fi
 
@@ -279,7 +284,7 @@ function test_ipv4 {
 		$XDP_USER_CMD ipv4 $VETH_HOST2 ${IPV4_HOST1%/*}
 
 	# ping host 2 from host 1 (should not work)
-	if $IP netns exec $NS_HOST1 $PING -q -c 1 ${IPV4_HOST2%/*}; then
+	if test_ping $IPV4_HOST2; then
 		echo "ERROR"
 	fi
 
@@ -296,7 +301,7 @@ function test_ipv6 {
 	sleep 3
 
 	# ping host 2 from host 1 (should work)
-	if ! $IP netns exec $NS_HOST1 $PING -q -c 1 ${IPV6_HOST2%/*}; then
+	if ! test_ping $IPV6_HOST2; then
 		echo "ERROR"
 	fi
 
@@ -305,7 +310,7 @@ function test_ipv6 {
 		$XDP_USER_CMD ipv6 $VETH_HOST2 ${IPV6_HOST1%/*}
 
 	# ping host 2 from host 1 (should not work)
-	if $IP netns exec $NS_HOST1 $PING -q -c 1 ${IPV6_HOST2%/*}; then
+	if test_ping $IPV6_HOST2; then
 		echo "ERROR"
 	fi
 
