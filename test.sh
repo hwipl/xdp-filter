@@ -200,14 +200,20 @@ function load_all {
 	unload_xdp
 }
 
-# test ethernet filtering
-function test_ethernet {
+# prepare everything for a test run
+function prepare_test {
 	# build everything
 	$BUILD
 
 	# clean up old setup and setup everything
 	tear_down
 	setup
+}
+
+# test ethernet filtering
+function test_ethernet {
+	# prepare
+	prepare_test
 
 	# ping host 2 from host 1 (should work)
 	if ! $IP netns exec $NS_HOST1 $PING -q -c 1 ${IPV4_HOST2%/*}; then
@@ -229,12 +235,8 @@ function test_ethernet {
 
 # test vlan filtering
 function test_vlan {
-	# build everything
-	$BUILD
-
-	# clean up old setup and setup everything
-	tear_down
-	setup
+	# prepare
+	prepare_test
 
 	# ping host 2 from host 1 (should work)
 	if ! $IP netns exec $NS_HOST1 $PING -q -c 1 ${IPV4_HOST2_VLAN%/*}; then
@@ -264,12 +266,8 @@ function test_vlan {
 
 # test ipv4 filtering
 function test_ipv4 {
-	# build everything
-	$BUILD
-
-	# clean up old setup and setup everything
-	tear_down
-	setup
+	# prepare
+	prepare_test
 
 	# ping host 2 from host 1 (should work)
 	if ! $IP netns exec $NS_HOST1 $PING -q -c 1 ${IPV4_HOST2%/*}; then
@@ -291,12 +289,8 @@ function test_ipv4 {
 
 # test ipv6 filtering
 function test_ipv6 {
-	# build everything
-	$BUILD
-
-	# clean up old setup and setup everything
-	tear_down
-	setup
+	# prepare
+	prepare_test
 
 	# wait for dad
 	sleep 3
@@ -321,12 +315,8 @@ function test_ipv6 {
 
 # test udp filtering
 function test_udp {
-	# build everything
-	$BUILD
-
-	# clean up old setup and setup everything
-	tear_down
-	setup
+	# prepare
+	prepare_test
 
 	# test connection to host 2 from host 1 (should work)
 	$IP netns exec $NS_HOST2 $NC -l -p $PORT -k -u > /dev/null &
@@ -355,12 +345,8 @@ function test_udp {
 
 # test tcp filtering
 function test_tcp {
-	# build everything
-	$BUILD
-
-	# clean up old setup and setup everything
-	tear_down
-	setup
+	# prepare
+	prepare_test
 
 	# test connection to host 2 from host 1 (should work)
 	$IP netns exec $NS_HOST2 $NC -l -p $PORT -k > /dev/null &
