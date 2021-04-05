@@ -191,7 +191,7 @@ void *get_l3_header(void *data, void *data_end, __u16 type) {
 }
 
 /* helper for getting the layer 4 header in the ethernet packet in data */
-void *get_l4_header(void *data, void *data_end, __u16 type) {
+void *get_l4_header(void *data, void *data_end, __u8 type) {
 	struct ethhdr *eth = data;
 	struct ipv6hdr *ipv6;
 	struct iphdr *ipv4;
