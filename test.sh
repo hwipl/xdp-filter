@@ -224,8 +224,13 @@ function prepare_test {
 	$BUILD
 
 	# clean up old setup and setup everything
-	tear_down 2> /dev/null
-	setup
+	tear_down > /dev/null 2>&1
+	setup > /dev/null
+}
+
+# clean up after a test run
+function cleanup_test {
+	tear_down > /dev/null
 }
 
 # ping test helper
@@ -261,7 +266,7 @@ function test_ethernet {
 	test_ping $IPV4_HOST2 1
 
 	# cleanup
-	tear_down
+	cleanup_test
 }
 
 # test vlan filtering
@@ -282,7 +287,7 @@ function test_vlan {
 	test_ping $IPV4_HOST2_VLAN_STACKED 1
 
 	# cleanup
-	tear_down
+	cleanup_test
 }
 
 # test ipv4 filtering
@@ -301,7 +306,7 @@ function test_ipv4 {
 	test_ping $IPV4_HOST2 1
 
 	# cleanup
-	tear_down
+	cleanup_test
 }
 
 # test ipv6 filtering
@@ -320,7 +325,7 @@ function test_ipv6 {
 	test_ping $IPV6_HOST2 1
 
 	# cleanup
-	tear_down
+	cleanup_test
 }
 
 # udp/tcp test helper
@@ -394,7 +399,7 @@ function test_udp {
 	run_l4test ipv6 udp $SOURCE_PORT4 $IPV6_HOST2 1
 
 	# cleanup
-	tear_down
+	cleanup_test
 }
 
 # test tcp filtering
@@ -416,7 +421,7 @@ function test_tcp {
 	run_l4test ipv6 tcp $SOURCE_PORT4 $IPV6_HOST2 1
 
 	# cleanup
-	tear_down
+	cleanup_test
 }
 
 # run all tests
