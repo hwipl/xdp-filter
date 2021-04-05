@@ -462,6 +462,8 @@ case $1 in
 		test_all
 		;;
 	*)
-		echo "$0 setup|teardown|loadall|ethernet|vlan"
+		echo "Usage:"
+		echo "$0 setup|teardown|loadall"
+		echo "$0 ethernet|vlan|ipv4|ipv6|udp|tcp|all"
 		;;
 esac
