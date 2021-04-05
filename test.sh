@@ -253,9 +253,11 @@ function test_ping {
 # test ethernet filtering
 function test_ethernet {
 	# prepare
+	echo "Ethernet:"
 	prepare_test
 
 	# ping host 2 from host 1 (should work)
+	echo -n "  setup: "
 	test_ping $IPV4_HOST2 0
 
 	# start ethernet filtering
@@ -263,6 +265,7 @@ function test_ethernet {
 		$XDP_USER_CMD ethernet $VETH_HOST2 $MAC_HOST1
 
 	# ping host 2 from host 1 (should not work)
+	echo -n "  test: "
 	test_ping $IPV4_HOST2 1
 
 	# cleanup
@@ -272,10 +275,13 @@ function test_ethernet {
 # test vlan filtering
 function test_vlan {
 	# prepare
+	echo "VLAN:"
 	prepare_test
 
 	# ping host 2 from host 1 (should work)
+	echo -n "  setup: "
 	test_ping $IPV4_HOST2_VLAN 0
+	echo -n "  stacked setup: "
 	test_ping $IPV4_HOST2_VLAN_STACKED 0
 
 	# start vlan filtering
@@ -283,7 +289,9 @@ function test_vlan {
 		$XDP_USER_CMD vlan $VETH_HOST2 $VLAN_ID $VLAN_STACKED_ID
 
 	# ping host 2 from host 1 (should not work)
+	echo -n "  test: "
 	test_ping $IPV4_HOST2_VLAN 1
+	echo -n "  stacked test: "
 	test_ping $IPV4_HOST2_VLAN_STACKED 1
 
 	# cleanup
@@ -293,9 +301,11 @@ function test_vlan {
 # test ipv4 filtering
 function test_ipv4 {
 	# prepare
+	echo "IPv4:"
 	prepare_test
 
 	# ping host 2 from host 1 (should work)
+	echo -n "  setup: "
 	test_ping $IPV4_HOST2 0
 
 	# start ipv4 filtering
@@ -303,6 +313,7 @@ function test_ipv4 {
 		$XDP_USER_CMD ipv4 $VETH_HOST2 ${IPV4_HOST1%/*}
 
 	# ping host 2 from host 1 (should not work)
+	echo -n "  test: "
 	test_ping $IPV4_HOST2 1
 
 	# cleanup
@@ -312,9 +323,11 @@ function test_ipv4 {
 # test ipv6 filtering
 function test_ipv6 {
 	# prepare
+	echo "IPv6:"
 	prepare_test
 
 	# ping host 2 from host 1 (should work)
+	echo -n "  setup: "
 	test_ping $IPV6_HOST2 0
 
 	# start ipv6 filtering
@@ -322,6 +335,7 @@ function test_ipv6 {
 		$XDP_USER_CMD ipv6 $VETH_HOST2 ${IPV6_HOST1%/*}
 
 	# ping host 2 from host 1 (should not work)
+	echo -n "  test: "
 	test_ping $IPV6_HOST2 1
 
 	# cleanup
@@ -383,10 +397,13 @@ function run_l4test {
 # test udp filtering
 function test_udp {
 	# prepare
+	echo "UDP:"
 	prepare_test
 
 	# test connection to host 2 from host 1 (should work)
+	echo -n "  ipv4 setup: "
 	run_l4test ipv4 udp $SOURCE_PORT1 $IPV4_HOST2 0
+	echo -n "  ipv6 setup: "
 	run_l4test ipv6 udp $SOURCE_PORT2 $IPV6_HOST2 0
 
 	# start udp filtering
@@ -395,7 +412,9 @@ function test_udp {
 		$SOURCE_PORT1 $SOURCE_PORT2 $SOURCE_PORT3 $SOURCE_PORT4
 
 	# test connection to host 2 from host 1 (should not work)
+	echo -n "  ipv4 test: "
 	run_l4test ipv4 udp $SOURCE_PORT3 $IPV4_HOST2 1
+	echo -n "  ipv6 test: "
 	run_l4test ipv6 udp $SOURCE_PORT4 $IPV6_HOST2 1
 
 	# cleanup
@@ -405,10 +424,13 @@ function test_udp {
 # test tcp filtering
 function test_tcp {
 	# prepare
+	echo "TCP:"
 	prepare_test
 
 	# test connection to host 2 from host 1 (should work)
+	echo -n "  ipv4 setup: "
 	run_l4test ipv4 tcp $SOURCE_PORT1 $IPV4_HOST2 0
+	echo -n "  ipv6 setup: "
 	run_l4test ipv6 tcp $SOURCE_PORT2 $IPV6_HOST2 0
 
 	# start udp filtering
@@ -417,7 +439,9 @@ function test_tcp {
 		$SOURCE_PORT1 $SOURCE_PORT2 $SOURCE_PORT3 $SOURCE_PORT4
 
 	# test connection to host 2 from host 1 (should not work)
+	echo -n "  ipv4 test: "
 	run_l4test ipv4 tcp $SOURCE_PORT3 $IPV4_HOST2 1
+	echo -n "  ipv4 test: "
 	run_l4test ipv6 tcp $SOURCE_PORT4 $IPV6_HOST2 1
 
 	# cleanup
