@@ -197,7 +197,7 @@ void *get_l4_header(void *data, void *data_end, __u8 type) {
 	struct iphdr *ipv4;
 
 	/* check packet length for verifier */
-	if (data + sizeof(struct ethhdr) + sizeof(struct ipv6hdr) > data_end) {
+	if (data + sizeof(struct ethhdr) > data_end) {
 		return 0;
 	}
 
@@ -206,6 +206,12 @@ void *get_l4_header(void *data, void *data_end, __u8 type) {
 	case ETH_P_IP:
 		ipv4 = data + sizeof(struct ethhdr);
 
+		/* check packet length for verifier */
+		if ((void *) ipv4 + sizeof(struct iphdr) > data_end) {
+			return 0;
+		}
+
+		/* check l4 type */
 		if (ipv4->protocol != type) {
 			return 0;
 		}
@@ -214,6 +220,12 @@ void *get_l4_header(void *data, void *data_end, __u8 type) {
 	case ETH_P_IPV6:
 		ipv6 = data + sizeof(struct ethhdr);
 
+		/* check packet length for verifier */
+		if ((void *) ipv6 + sizeof(struct ipv6hdr) > data_end) {
+			return 0;
+		}
+
+		/* check l4 type */
 		if (ipv6->nexthdr != type) {
 			return 0;
 		}
