@@ -317,9 +317,17 @@ function test_ipv6 {
 
 # udp/tcp test helper
 function run_l4test {
-	local prot=$1
-	local sport=$2
-	local expect=$3
+	local ipver=$1
+	local prot=$2
+	local sport=$3
+	local dip=$4
+	local expect=$5
+
+	# check ip version (4 or 6) and set nc parameter
+	local ipv="-4"
+	if [[ $ipver == "ipv6" ]]; then
+		local ipv="-6"
+	fi
 
 	# check protocol (tcp or udp) and set nc parameter
 	local udp=""
@@ -332,13 +340,13 @@ function run_l4test {
 
 	# start server and save pid
 	$IP netns exec $NS_HOST2 \
-		$NC -4 $udp -l -p $LISTEN_PORT -k > $L4TESTFILE &
+		$NC $ipv $udp -l -p $LISTEN_PORT -k > $L4TESTFILE &
 	local pid=$!
 	sleep 1
 
 	# run client
 	echo "test" | $IP netns exec $NS_HOST1 \
-		$NC -4 $udp -q 1 -w 1 -p "$sport" "${IPV4_HOST2%/*}" $LISTEN_PORT
+		$NC $ipv $udp -q 1 -w 1 -p "$sport" "${dip%/*}" $LISTEN_PORT
 	sleep 1
 
 	# kill server
@@ -365,7 +373,8 @@ function test_udp {
 	prepare_test
 
 	# test connection to host 2 from host 1 (should work)
-	run_l4test udp $SOURCE_PORT1 0
+	run_l4test ipv4 udp $SOURCE_PORT1 $IPV4_HOST2 0
+	run_l4test ipv6 udp $SOURCE_PORT2 $IPV6_HOST2 0
 
 	# start udp filtering
 	$IP netns exec $NS_HOST2 \
@@ -373,7 +382,8 @@ function test_udp {
 		$SOURCE_PORT1 $SOURCE_PORT2 $SOURCE_PORT3 $SOURCE_PORT4
 
 	# test connection to host 2 from host 1 (should not work)
-	run_l4test udp $SOURCE_PORT3 1
+	run_l4test ipv4 udp $SOURCE_PORT3 $IPV4_HOST2 1
+	run_l4test ipv6 udp $SOURCE_PORT4 $IPV6_HOST2 1
 
 	# cleanup
 	tear_down
@@ -385,7 +395,8 @@ function test_tcp {
 	prepare_test
 
 	# test connection to host 2 from host 1 (should work)
-	run_l4test tcp $SOURCE_PORT1 0
+	run_l4test ipv4 tcp $SOURCE_PORT1 $IPV4_HOST2 0
+	run_l4test ipv6 tcp $SOURCE_PORT2 $IPV6_HOST2 0
 
 	# start udp filtering
 	$IP netns exec $NS_HOST2 \
@@ -393,7 +404,8 @@ function test_tcp {
 		$SOURCE_PORT1 $SOURCE_PORT2 $SOURCE_PORT3 $SOURCE_PORT4
 
 	# test connection to host 2 from host 1 (should not work)
-	run_l4test tcp $SOURCE_PORT3 1
+	run_l4test ipv4 tcp $SOURCE_PORT3 $IPV4_HOST2 1
+	run_l4test ipv6 tcp $SOURCE_PORT4 $IPV6_HOST2 1
 
 	# cleanup
 	tear_down
