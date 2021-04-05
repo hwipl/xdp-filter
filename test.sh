@@ -46,6 +46,9 @@ IPV6_HOST2_VLAN_STACKED="fd00:200::2/64"
 # tcp/udp port
 PORT=2000
 
+# udp/tcp test file
+L4TESTFILE=l4test.out
+
 # xdp files
 XDP_USER_CMD="./xdp_filter_user"
 XDP_OBJ_FILE="xdp_filter_kern.o"
@@ -313,19 +316,31 @@ function run_udp {
 	local sport=$1
 	local expect=$2
 
-	# start server and save pid
-	$IP netns exec $NS_HOST2 $NC -l -p $PORT -k -u > /dev/null &
-	local pid=$!
+	# prepare test file
+	echo -n "" > $L4TESTFILE
 
-	# start client and save result
-	$IP netns exec $NS_HOST1 $NC -4uvz -p "$sport" ${IPV4_HOST2%/*} $PORT
-	local rc=$?
+	# start server and save pid
+	$IP netns exec $NS_HOST2 $NC -l -p $PORT -k -u > $L4TESTFILE &
+	local pid=$!
+	sleep 1
+
+	# run client
+	echo "test" | $IP netns exec $NS_HOST1 \
+		$NC -4u -q 1 -w 1 -p "$sport" ${IPV4_HOST2%/*} $PORT
+	sleep 1
 
 	# kill server
 	$IP netns exec $NS_HOST2 $KILL $pid
+	sleep 1
 
-	# check result and compare it with expected value
-	if [[ $rc == "$expect" ]]; then
+	# check result
+	local result=1
+	if [[ $(cat $L4TESTFILE) == "test" ]]; then
+		local result=0
+	fi
+
+	# compare result with expected value
+	if [[ $result == "$expect" ]]; then
 		echo "OK"
 	else
 		echo "ERROR"
