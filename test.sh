@@ -311,58 +311,29 @@ function test_ipv6 {
 	tear_down
 }
 
-# udp test helper
-function run_udp {
-	local sport=$1
-	local expect=$2
+# udp/tcp test helper
+function run_l4test {
+	local prot=$1
+	local sport=$2
+	local expect=$3
+
+	# check protocol (tcp or udp) and set nc parameter
+	local udp=""
+	if [[ $prot == "udp" ]]; then
+		local udp="-u"
+	fi
 
 	# prepare test file
 	echo -n "" > $L4TESTFILE
 
 	# start server and save pid
-	$IP netns exec $NS_HOST2 $NC -l -p $PORT -k -u > $L4TESTFILE &
+	$IP netns exec $NS_HOST2 $NC -4 $udp -l -p $PORT -k > $L4TESTFILE &
 	local pid=$!
 	sleep 1
 
 	# run client
 	echo "test" | $IP netns exec $NS_HOST1 \
-		$NC -4u -q 1 -w 1 -p "$sport" ${IPV4_HOST2%/*} $PORT
-	sleep 1
-
-	# kill server
-	$IP netns exec $NS_HOST2 $KILL $pid
-	sleep 1
-
-	# check result
-	local result=1
-	if [[ $(cat $L4TESTFILE) == "test" ]]; then
-		local result=0
-	fi
-
-	# compare result with expected value
-	if [[ $result == "$expect" ]]; then
-		echo "OK"
-	else
-		echo "ERROR"
-	fi
-}
-
-# tcp test helper
-function run_tcp {
-	local sport=$1
-	local expect=$2
-
-	# prepare test file
-	echo -n "" > $L4TESTFILE
-
-	# start server and save pid
-	$IP netns exec $NS_HOST2 $NC -l -p $PORT -k > $L4TESTFILE &
-	local pid=$!
-	sleep 1
-
-	# run client
-	echo "test" | $IP netns exec $NS_HOST1 \
-		$NC -4 -q 1 -w 1 -p "$sport" ${IPV4_HOST2%/*} $PORT
+		$NC -4 $udp -q 1 -w 1 -p "$sport" ${IPV4_HOST2%/*} $PORT
 	sleep 1
 
 	# kill server
@@ -389,13 +360,13 @@ function test_udp {
 	prepare_test
 
 	# test connection to host 2 from host 1 (should work)
-	run_udp $((PORT-1)) 0
+	run_l4test udp $((PORT-1)) 0
 
 	# start udp filtering
 	$IP netns exec $NS_HOST2 $XDP_USER_CMD udp $VETH_HOST2 $PORT
 
 	# test connection to host 2 from host 1 (should not work)
-	run_udp $PORT 1
+	run_l4test udp $PORT 1
 
 	# cleanup
 	tear_down
@@ -407,13 +378,13 @@ function test_tcp {
 	prepare_test
 
 	# test connection to host 2 from host 1 (should work)
-	run_tcp $((PORT-1)) 0
+	run_l4test tcp $((PORT-1)) 0
 
 	# start udp filtering
 	$IP netns exec $NS_HOST2 $XDP_USER_CMD tcp $VETH_HOST2 $PORT
 
 	# test connection to host 2 from host 1 (should not work)
-	run_tcp $PORT 1
+	run_l4test tcp $PORT 1
 
 	# cleanup
 	tear_down
