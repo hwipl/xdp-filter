@@ -43,8 +43,12 @@ IPV6_HOST2_VLAN="fd00:100::2/64"
 IPV6_HOST1_VLAN_STACKED="fd00:200::1/64"
 IPV6_HOST2_VLAN_STACKED="fd00:200::2/64"
 
-# tcp/udp port
-PORT=2000
+# tcp/udp ports
+LISTEN_PORT=1999
+SOURCE_PORT1=2000
+SOURCE_PORT2=2001
+SOURCE_PORT3=2002
+SOURCE_PORT4=2003
 
 # udp/tcp test file
 L4TESTFILE=l4test.out
@@ -327,13 +331,14 @@ function run_l4test {
 	echo -n "" > $L4TESTFILE
 
 	# start server and save pid
-	$IP netns exec $NS_HOST2 $NC -4 $udp -l -p $PORT -k > $L4TESTFILE &
+	$IP netns exec $NS_HOST2 \
+		$NC -4 $udp -l -p $LISTEN_PORT -k > $L4TESTFILE &
 	local pid=$!
 	sleep 1
 
 	# run client
 	echo "test" | $IP netns exec $NS_HOST1 \
-		$NC -4 $udp -q 1 -w 1 -p "$sport" ${IPV4_HOST2%/*} $PORT
+		$NC -4 $udp -q 1 -w 1 -p "$sport" "${IPV4_HOST2%/*}" $LISTEN_PORT
 	sleep 1
 
 	# kill server
@@ -360,13 +365,15 @@ function test_udp {
 	prepare_test
 
 	# test connection to host 2 from host 1 (should work)
-	run_l4test udp $((PORT-1)) 0
+	run_l4test udp $SOURCE_PORT1 0
 
 	# start udp filtering
-	$IP netns exec $NS_HOST2 $XDP_USER_CMD udp $VETH_HOST2 $PORT
+	$IP netns exec $NS_HOST2 \
+		$XDP_USER_CMD udp $VETH_HOST2 \
+		$SOURCE_PORT1 $SOURCE_PORT2 $SOURCE_PORT3 $SOURCE_PORT4
 
 	# test connection to host 2 from host 1 (should not work)
-	run_l4test udp $PORT 1
+	run_l4test udp $SOURCE_PORT3 1
 
 	# cleanup
 	tear_down
@@ -378,13 +385,15 @@ function test_tcp {
 	prepare_test
 
 	# test connection to host 2 from host 1 (should work)
-	run_l4test tcp $((PORT-1)) 0
+	run_l4test tcp $SOURCE_PORT1 0
 
 	# start udp filtering
-	$IP netns exec $NS_HOST2 $XDP_USER_CMD tcp $VETH_HOST2 $PORT
+	$IP netns exec $NS_HOST2 \
+		$XDP_USER_CMD tcp $VETH_HOST2 \
+		$SOURCE_PORT1 $SOURCE_PORT2 $SOURCE_PORT3 $SOURCE_PORT4
 
 	# test connection to host 2 from host 1 (should not work)
-	run_l4test tcp $PORT 1
+	run_l4test tcp $SOURCE_PORT3 1
 
 	# cleanup
 	tear_down
