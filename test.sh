@@ -332,6 +332,31 @@ function run_udp {
 	fi
 }
 
+# tcp test helper
+function run_tcp {
+	local sport=$1
+	local expect=$2
+
+	# start server and save pid
+	$IP netns exec $NS_HOST2 $NC -l -p $PORT -k > /dev/null &
+	local pid=$!
+
+	# start client and save result
+	$IP netns exec $NS_HOST1 \
+		$NC -4vz -p "$sport" -w 3 ${IPV4_HOST2%/*} $PORT
+	local rc=$?
+
+	# kill server
+	$IP netns exec $NS_HOST2 $KILL $pid
+
+	# check result and compare it with expected value
+	if [[ $rc == "$expect" ]]; then
+		echo "OK"
+	else
+		echo "ERROR: $rc"
+	fi
+}
+
 # test udp filtering
 function test_udp {
 	# prepare
@@ -356,25 +381,13 @@ function test_tcp {
 	prepare_test
 
 	# test connection to host 2 from host 1 (should work)
-	$IP netns exec $NS_HOST2 $NC -l -p $PORT -k > /dev/null &
-	local pid=$!
-	if ! $IP netns exec $NS_HOST1 \
-		$NC -4vz ${IPV4_HOST2%/*} $PORT; then
-		echo "ERROR"
-	fi
-	$IP netns exec $NS_HOST2 $KILL $pid
+	run_tcp $((PORT-1)) 0
 
 	# start udp filtering
 	$IP netns exec $NS_HOST2 $XDP_USER_CMD tcp $VETH_HOST2 $PORT
 
 	# test connection to host 2 from host 1 (should not work)
-	$IP netns exec $NS_HOST2 $NC -l -p $PORT -k > /dev/null &
-	local pid=$!
-	if $IP netns exec $NS_HOST1 \
-		$NC -4vz -p $PORT -w 3 ${IPV4_HOST2%/*} $PORT; then
-		echo "ERROR"
-	fi
-	$IP netns exec $NS_HOST2 $KILL $pid
+	run_tcp $PORT 1
 
 	# cleanup
 	tear_down
