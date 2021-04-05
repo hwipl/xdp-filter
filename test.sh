@@ -166,6 +166,9 @@ function add_ips {
 		dev $VLAN_STACKED_DEV
 	$IP netns exec $NS_HOST2 $IP address add $IPV6_HOST2_VLAN_STACKED \
 		dev $VLAN_STACKED_DEV
+
+	# wait for ipv6 dad
+	sleep 3
 }
 
 # set everything up
@@ -297,9 +300,6 @@ function test_ipv4 {
 function test_ipv6 {
 	# prepare
 	prepare_test
-
-	# wait for dad
-	sleep 3
 
 	# ping host 2 from host 1 (should work)
 	test_ping $IPV6_HOST2 0
