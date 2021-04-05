@@ -5,6 +5,7 @@ IP=/usr/bin/ip
 PING=/usr/bin/ping
 NC=/usr/bin/nc
 KILL=/usr/bin/kill
+ETHTOOL=/usr/bin/ethtool
 
 # build command
 BUILD="./build.sh"
@@ -89,6 +90,13 @@ function add_veths {
 	# set veth interfaces up
 	$IP netns exec $NS_HOST1 $IP link set $VETH_HOST1 up
 	$IP netns exec $NS_HOST2 $IP link set $VETH_HOST2 up
+
+	# disable vlan offloading
+	$IP netns exec $NS_HOST1 $ETHTOOL -K $VETH_HOST1 tx-vlan-offload off
+	$IP netns exec $NS_HOST1 $ETHTOOL -K $VETH_HOST1 rx-vlan-offload off
+
+	$IP netns exec $NS_HOST2 $ETHTOOL -K $VETH_HOST2 tx-vlan-offload off
+	$IP netns exec $NS_HOST2 $ETHTOOL -K $VETH_HOST2 rx-vlan-offload off
 }
 
 # delete veth interfaces from network namespaces
