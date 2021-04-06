@@ -255,6 +255,58 @@ function run_ping_test {
 	fi
 }
 
+# udp/tcp test helper
+function run_l4_test {
+	local ipver=$1
+	local prot=$2
+	local sport=$3
+	local dip=$4
+	local expect=$5
+
+	# check ip version (4 or 6) and set nc parameter
+	local ipv="-4"
+	if [[ $ipver == "ipv6" ]]; then
+		local ipv="-6"
+	fi
+
+	# check protocol (tcp or udp) and set nc parameter
+	local udp=""
+	if [[ $prot == "udp" ]]; then
+		local udp="-u"
+	fi
+
+	# prepare test file
+	echo -n "" > $L4TESTFILE
+
+	# start server and save pid
+	$IP netns exec $NS_HOST2 \
+		$NC $ipv $udp -l -p $LISTEN_PORT -k > $L4TESTFILE &
+	local pid=$!
+	sleep 1
+
+	# run client
+	echo "test" | $IP netns exec $NS_HOST1 \
+		$NC $ipv $udp -q 1 -w 1 -p "$sport" "${dip%/*}" $LISTEN_PORT
+	sleep 1
+
+	# kill server
+	$IP netns exec $NS_HOST2 $KILL $pid
+	sleep 1
+
+	# check result
+	local result=1
+	if [[ $(cat $L4TESTFILE) == "test" ]]; then
+		local result=0
+	fi
+
+	# compare result with expected value
+	if [[ $result == "$expect" ]]; then
+		echo "OK"
+	else
+		echo "ERROR"
+	fi
+}
+
 # test ethernet filtering
 function test_ethernet {
 	# prepare
@@ -341,58 +393,6 @@ function test_ipv6 {
 
 	# cleanup
 	cleanup_test
-}
-
-# udp/tcp test helper
-function run_l4_test {
-	local ipver=$1
-	local prot=$2
-	local sport=$3
-	local dip=$4
-	local expect=$5
-
-	# check ip version (4 or 6) and set nc parameter
-	local ipv="-4"
-	if [[ $ipver == "ipv6" ]]; then
-		local ipv="-6"
-	fi
-
-	# check protocol (tcp or udp) and set nc parameter
-	local udp=""
-	if [[ $prot == "udp" ]]; then
-		local udp="-u"
-	fi
-
-	# prepare test file
-	echo -n "" > $L4TESTFILE
-
-	# start server and save pid
-	$IP netns exec $NS_HOST2 \
-		$NC $ipv $udp -l -p $LISTEN_PORT -k > $L4TESTFILE &
-	local pid=$!
-	sleep 1
-
-	# run client
-	echo "test" | $IP netns exec $NS_HOST1 \
-		$NC $ipv $udp -q 1 -w 1 -p "$sport" "${dip%/*}" $LISTEN_PORT
-	sleep 1
-
-	# kill server
-	$IP netns exec $NS_HOST2 $KILL $pid
-	sleep 1
-
-	# check result
-	local result=1
-	if [[ $(cat $L4TESTFILE) == "test" ]]; then
-		local result=0
-	fi
-
-	# compare result with expected value
-	if [[ $result == "$expect" ]]; then
-		echo "OK"
-	else
-		echo "ERROR"
-	fi
 }
 
 # test udp filtering
