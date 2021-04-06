@@ -233,6 +233,11 @@ function cleanup_test {
 	tear_down > /dev/null
 }
 
+# run xdp user command on host 2
+function run_xdp_host2 {
+	$IP netns exec $NS_HOST2 $XDP_USER_CMD "$@"
+}
+
 # ping test helper
 function run_ping_test {
 	local ip=$1
@@ -261,8 +266,7 @@ function test_ethernet {
 	run_ping_test $IPV4_HOST2 0
 
 	# start ethernet filtering
-	$IP netns exec $NS_HOST2 \
-		$XDP_USER_CMD ethernet $VETH_HOST2 $MAC_HOST1
+	run_xdp_host2 ethernet $VETH_HOST2 $MAC_HOST1
 
 	# ping host 2 from host 1 (should not work)
 	echo -n "  test: "
@@ -285,8 +289,7 @@ function test_vlan {
 	run_ping_test $IPV4_HOST2_VLAN_STACKED 0
 
 	# start vlan filtering
-	$IP netns exec $NS_HOST2 \
-		$XDP_USER_CMD vlan $VETH_HOST2 $VLAN_ID $VLAN_STACKED_ID
+	run_xdp_host2 vlan $VETH_HOST2 $VLAN_ID $VLAN_STACKED_ID
 
 	# ping host 2 from host 1 (should not work)
 	echo -n "  test: "
@@ -309,8 +312,7 @@ function test_ipv4 {
 	run_ping_test $IPV4_HOST2 0
 
 	# start ipv4 filtering
-	$IP netns exec $NS_HOST2 \
-		$XDP_USER_CMD ipv4 $VETH_HOST2 ${IPV4_HOST1%/*}
+	run_xdp_host2 ipv4 $VETH_HOST2 ${IPV4_HOST1%/*}
 
 	# ping host 2 from host 1 (should not work)
 	echo -n "  test: "
@@ -331,8 +333,7 @@ function test_ipv6 {
 	run_ping_test $IPV6_HOST2 0
 
 	# start ipv6 filtering
-	$IP netns exec $NS_HOST2 \
-		$XDP_USER_CMD ipv6 $VETH_HOST2 ${IPV6_HOST1%/*}
+	run_xdp_host2 ipv6 $VETH_HOST2 ${IPV6_HOST1%/*}
 
 	# ping host 2 from host 1 (should not work)
 	echo -n "  test: "
@@ -407,8 +408,7 @@ function test_udp {
 	run_l4_test ipv6 udp $SOURCE_PORT2 $IPV6_HOST2 0
 
 	# start udp filtering
-	$IP netns exec $NS_HOST2 \
-		$XDP_USER_CMD udp $VETH_HOST2 \
+	run_xdp_host2 udp $VETH_HOST2 \
 		$SOURCE_PORT1 $SOURCE_PORT2 $SOURCE_PORT3 $SOURCE_PORT4
 
 	# test connection to host 2 from host 1 (should not work)
@@ -434,8 +434,7 @@ function test_tcp {
 	run_l4_test ipv6 tcp $SOURCE_PORT2 $IPV6_HOST2 0
 
 	# start udp filtering
-	$IP netns exec $NS_HOST2 \
-		$XDP_USER_CMD tcp $VETH_HOST2 \
+	run_xdp_host2 tcp $VETH_HOST2 \
 		$SOURCE_PORT1 $SOURCE_PORT2 $SOURCE_PORT3 $SOURCE_PORT4
 
 	# test connection to host 2 from host 1 (should not work)
