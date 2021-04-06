@@ -72,24 +72,33 @@ function delete_namespaces {
 	$IP netns delete $NS_HOST2
 }
 
+# run ip link command on host 1
+function ip_link_host1 {
+	$IP netns exec $NS_HOST1 $IP link "$@"
+}
+
+# run ip link command on host 2
+function ip_link_host2 {
+	$IP netns exec $NS_HOST2 $IP link "$@"
+}
+
 # add veth interfaces to network namespaces
 function add_veths {
 	echo "Adding veth interfaces..."
 
 	# add veth interfaces
-	$IP netns exec $NS_HOST1 $IP link add $VETH_HOST1 type veth \
-		peer name $VETH_HOST2
+	ip_link_host1 add $VETH_HOST1 type veth peer name $VETH_HOST2
 
 	# move second veth interface to other namespace
-	$IP netns exec $NS_HOST1 $IP link set $VETH_HOST2 netns $NS_HOST2
+	ip_link_host1 set $VETH_HOST2 netns $NS_HOST2
 
 	# set mac addresses of veth interfaces
-	$IP netns exec $NS_HOST1 $IP link set $VETH_HOST1 address $MAC_HOST1
-	$IP netns exec $NS_HOST2 $IP link set $VETH_HOST2 address $MAC_HOST2
+	ip_link_host1 set $VETH_HOST1 address $MAC_HOST1
+	ip_link_host2 set $VETH_HOST2 address $MAC_HOST2
 
 	# set veth interfaces up
-	$IP netns exec $NS_HOST1 $IP link set $VETH_HOST1 up
-	$IP netns exec $NS_HOST2 $IP link set $VETH_HOST2 up
+	ip_link_host1 set $VETH_HOST1 up
+	ip_link_host2 set $VETH_HOST2 up
 
 	# disable vlan offloading
 	$IP netns exec $NS_HOST1 \
@@ -106,7 +115,7 @@ function add_veths {
 # delete veth interfaces from network namespaces
 function delete_veths {
 	echo "Removing veth interfaces..."
-	$IP netns exec $NS_HOST1 $IP link delete $VETH_HOST1 type veth
+	ip_link_host1 delete $VETH_HOST1 type veth
 }
 
 # add vlan interfaces to veth interfaces
@@ -114,24 +123,24 @@ function add_vlans {
 	echo "Adding vlan interfaces..."
 
 	# add vlan interfaces to veth interfaces
-	$IP netns exec $NS_HOST1 $IP link add link $VETH_HOST1 \
+	ip_link_host1 add link $VETH_HOST1 \
 		name $VLAN_DEV type vlan id $VLAN_ID
-	$IP netns exec $NS_HOST2 $IP link add link $VETH_HOST2 \
+	ip_link_host2 add link $VETH_HOST2 \
 		name $VLAN_DEV type vlan id $VLAN_ID
 
 	# add stacked vlan interfaces to existing vlan interfaces
-	$IP netns exec $NS_HOST1 $IP link add link $VLAN_DEV \
+	ip_link_host1 add link $VLAN_DEV \
 		name $VLAN_STACKED_DEV type vlan id $VLAN_STACKED_ID
-	$IP netns exec $NS_HOST2 $IP link add link $VLAN_DEV \
+	ip_link_host2 add link $VLAN_DEV \
 		name $VLAN_STACKED_DEV type vlan id $VLAN_STACKED_ID
 
 	# set vlan interfaces up
-	$IP netns exec $NS_HOST1 $IP link set $VLAN_DEV up
-	$IP netns exec $NS_HOST2 $IP link set $VLAN_DEV up
+	ip_link_host1 set $VLAN_DEV up
+	ip_link_host2 set $VLAN_DEV up
 
 	# set stacked vlan interfaces up
-	$IP netns exec $NS_HOST1 $IP link set $VLAN_STACKED_DEV up
-	$IP netns exec $NS_HOST2 $IP link set $VLAN_STACKED_DEV up
+	ip_link_host1 set $VLAN_STACKED_DEV up
+	ip_link_host2 set $VLAN_STACKED_DEV up
 }
 
 # delete vlan interfaces from veth interfaces
@@ -139,12 +148,12 @@ function delete_vlans {
 	echo "Removing vlan interfaces..."
 
 	# remove stacked vlan interfaces
-	$IP netns exec $NS_HOST1 $IP link delete $VLAN_STACKED_DEV type vlan
-	$IP netns exec $NS_HOST2 $IP link delete $VLAN_STACKED_DEV type vlan
+	ip_link_host1 delete $VLAN_STACKED_DEV type vlan
+	ip_link_host2 delete $VLAN_STACKED_DEV type vlan
 
 	# remove vlan interfaces
-	$IP netns exec $NS_HOST1 $IP link delete $VLAN_DEV type vlan
-	$IP netns exec $NS_HOST2 $IP link delete $VLAN_DEV type vlan
+	ip_link_host1 delete $VLAN_DEV type vlan
+	ip_link_host2 delete $VLAN_DEV type vlan
 }
 
 # add ip addresses to veth interfaces
