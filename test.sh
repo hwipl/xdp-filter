@@ -156,37 +156,43 @@ function delete_vlans {
 	ip_link_host2 delete $VLAN_DEV type vlan
 }
 
+# run ip address command on host 1
+function ip_addr_host1 {
+	$IP netns exec $NS_HOST1 $IP address "$@"
+}
+
+# run ip address command on host 2
+function ip_addr_host2 {
+	$IP netns exec $NS_HOST2 $IP address "$@"
+}
+
 # add ip addresses to veth interfaces
 function add_ips {
 	echo "Adding ip addresses to veth interfaces..."
 
 	# add ipv4 addresses to veth interfaces
-	$IP netns exec $NS_HOST1 $IP address add $IPV4_HOST1 dev $VETH_HOST1
-	$IP netns exec $NS_HOST2 $IP address add $IPV4_HOST2 dev $VETH_HOST2
+	ip_addr_host1 add $IPV4_HOST1 dev $VETH_HOST1
+	ip_addr_host2 add $IPV4_HOST2 dev $VETH_HOST2
 
 	# add ipv4 addresses to vlan interfaces
-	$IP netns exec $NS_HOST1 $IP address add $IPV4_HOST1_VLAN dev $VLAN_DEV
-	$IP netns exec $NS_HOST2 $IP address add $IPV4_HOST2_VLAN dev $VLAN_DEV
+	ip_addr_host1 add $IPV4_HOST1_VLAN dev $VLAN_DEV
+	ip_addr_host2 add $IPV4_HOST2_VLAN dev $VLAN_DEV
 
 	# add ipv4 addresses to stacked vlan interfaces
-	$IP netns exec $NS_HOST1 $IP address add $IPV4_HOST1_VLAN_STACKED \
-		dev $VLAN_STACKED_DEV
-	$IP netns exec $NS_HOST2 $IP address add $IPV4_HOST2_VLAN_STACKED \
-		dev $VLAN_STACKED_DEV
+	ip_addr_host1 add $IPV4_HOST1_VLAN_STACKED dev $VLAN_STACKED_DEV
+	ip_addr_host2 add $IPV4_HOST2_VLAN_STACKED dev $VLAN_STACKED_DEV
 
 	# add ipv6 addresses to veth interfaces
-	$IP netns exec $NS_HOST1 $IP address add $IPV6_HOST1 dev $VETH_HOST1
-	$IP netns exec $NS_HOST2 $IP address add $IPV6_HOST2 dev $VETH_HOST2
+	ip_addr_host1 add $IPV6_HOST1 dev $VETH_HOST1
+	ip_addr_host2 add $IPV6_HOST2 dev $VETH_HOST2
 
 	# add ipv6 addresses to vlan interfaces
-	$IP netns exec $NS_HOST1 $IP address add $IPV6_HOST1_VLAN dev $VLAN_DEV
-	$IP netns exec $NS_HOST2 $IP address add $IPV6_HOST2_VLAN dev $VLAN_DEV
+	ip_addr_host1 add $IPV6_HOST1_VLAN dev $VLAN_DEV
+	ip_addr_host2 add $IPV6_HOST2_VLAN dev $VLAN_DEV
 
 	# add ipv6 addresses to stacked vlan interfaces
-	$IP netns exec $NS_HOST1 $IP address add $IPV6_HOST1_VLAN_STACKED \
-		dev $VLAN_STACKED_DEV
-	$IP netns exec $NS_HOST2 $IP address add $IPV6_HOST2_VLAN_STACKED \
-		dev $VLAN_STACKED_DEV
+	ip_addr_host1 add $IPV6_HOST1_VLAN_STACKED dev $VLAN_STACKED_DEV
+	ip_addr_host2 add $IPV6_HOST2_VLAN_STACKED dev $VLAN_STACKED_DEV
 
 	# wait for ipv6 dad
 	sleep 3
