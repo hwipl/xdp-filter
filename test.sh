@@ -234,7 +234,7 @@ function cleanup_test {
 }
 
 # ping test helper
-function test_ping {
+function run_ping_test {
 	local ip=$1
 	local expect=$2
 
@@ -258,7 +258,7 @@ function test_ethernet {
 
 	# ping host 2 from host 1 (should work)
 	echo -n "  setup: "
-	test_ping $IPV4_HOST2 0
+	run_ping_test $IPV4_HOST2 0
 
 	# start ethernet filtering
 	$IP netns exec $NS_HOST2 \
@@ -266,7 +266,7 @@ function test_ethernet {
 
 	# ping host 2 from host 1 (should not work)
 	echo -n "  test: "
-	test_ping $IPV4_HOST2 1
+	run_ping_test $IPV4_HOST2 1
 
 	# cleanup
 	cleanup_test
@@ -280,9 +280,9 @@ function test_vlan {
 
 	# ping host 2 from host 1 (should work)
 	echo -n "  setup: "
-	test_ping $IPV4_HOST2_VLAN 0
+	run_ping_test $IPV4_HOST2_VLAN 0
 	echo -n "  stacked setup: "
-	test_ping $IPV4_HOST2_VLAN_STACKED 0
+	run_ping_test $IPV4_HOST2_VLAN_STACKED 0
 
 	# start vlan filtering
 	$IP netns exec $NS_HOST2 \
@@ -290,9 +290,9 @@ function test_vlan {
 
 	# ping host 2 from host 1 (should not work)
 	echo -n "  test: "
-	test_ping $IPV4_HOST2_VLAN 1
+	run_ping_test $IPV4_HOST2_VLAN 1
 	echo -n "  stacked test: "
-	test_ping $IPV4_HOST2_VLAN_STACKED 1
+	run_ping_test $IPV4_HOST2_VLAN_STACKED 1
 
 	# cleanup
 	cleanup_test
@@ -306,7 +306,7 @@ function test_ipv4 {
 
 	# ping host 2 from host 1 (should work)
 	echo -n "  setup: "
-	test_ping $IPV4_HOST2 0
+	run_ping_test $IPV4_HOST2 0
 
 	# start ipv4 filtering
 	$IP netns exec $NS_HOST2 \
@@ -314,7 +314,7 @@ function test_ipv4 {
 
 	# ping host 2 from host 1 (should not work)
 	echo -n "  test: "
-	test_ping $IPV4_HOST2 1
+	run_ping_test $IPV4_HOST2 1
 
 	# cleanup
 	cleanup_test
@@ -328,7 +328,7 @@ function test_ipv6 {
 
 	# ping host 2 from host 1 (should work)
 	echo -n "  setup: "
-	test_ping $IPV6_HOST2 0
+	run_ping_test $IPV6_HOST2 0
 
 	# start ipv6 filtering
 	$IP netns exec $NS_HOST2 \
@@ -336,7 +336,7 @@ function test_ipv6 {
 
 	# ping host 2 from host 1 (should not work)
 	echo -n "  test: "
-	test_ping $IPV6_HOST2 1
+	run_ping_test $IPV6_HOST2 1
 
 	# cleanup
 	cleanup_test
