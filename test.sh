@@ -92,11 +92,15 @@ function add_veths {
 	$IP netns exec $NS_HOST2 $IP link set $VETH_HOST2 up
 
 	# disable vlan offloading
-	$IP netns exec $NS_HOST1 $ETHTOOL -K $VETH_HOST1 tx-vlan-offload off
-	$IP netns exec $NS_HOST1 $ETHTOOL -K $VETH_HOST1 rx-vlan-offload off
+	$IP netns exec $NS_HOST1 \
+		$ETHTOOL -K $VETH_HOST1 tx-vlan-offload off
+	$IP netns exec $NS_HOST1 \
+		$ETHTOOL -K $VETH_HOST1 rx-vlan-offload off
 
-	$IP netns exec $NS_HOST2 $ETHTOOL -K $VETH_HOST2 tx-vlan-offload off
-	$IP netns exec $NS_HOST2 $ETHTOOL -K $VETH_HOST2 rx-vlan-offload off
+	$IP netns exec $NS_HOST2 \
+		$ETHTOOL -K $VETH_HOST2 tx-vlan-offload off
+	$IP netns exec $NS_HOST2 \
+		$ETHTOOL -K $VETH_HOST2 rx-vlan-offload off
 }
 
 # delete veth interfaces from network namespaces
