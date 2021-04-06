@@ -343,7 +343,7 @@ function test_ipv6 {
 }
 
 # udp/tcp test helper
-function run_l4test {
+function run_l4_test {
 	local ipver=$1
 	local prot=$2
 	local sport=$3
@@ -402,9 +402,9 @@ function test_udp {
 
 	# test connection to host 2 from host 1 (should work)
 	echo -n "  ipv4 setup: "
-	run_l4test ipv4 udp $SOURCE_PORT1 $IPV4_HOST2 0
+	run_l4_test ipv4 udp $SOURCE_PORT1 $IPV4_HOST2 0
 	echo -n "  ipv6 setup: "
-	run_l4test ipv6 udp $SOURCE_PORT2 $IPV6_HOST2 0
+	run_l4_test ipv6 udp $SOURCE_PORT2 $IPV6_HOST2 0
 
 	# start udp filtering
 	$IP netns exec $NS_HOST2 \
@@ -413,9 +413,9 @@ function test_udp {
 
 	# test connection to host 2 from host 1 (should not work)
 	echo -n "  ipv4 test: "
-	run_l4test ipv4 udp $SOURCE_PORT3 $IPV4_HOST2 1
+	run_l4_test ipv4 udp $SOURCE_PORT3 $IPV4_HOST2 1
 	echo -n "  ipv6 test: "
-	run_l4test ipv6 udp $SOURCE_PORT4 $IPV6_HOST2 1
+	run_l4_test ipv6 udp $SOURCE_PORT4 $IPV6_HOST2 1
 
 	# cleanup
 	cleanup_test
@@ -429,9 +429,9 @@ function test_tcp {
 
 	# test connection to host 2 from host 1 (should work)
 	echo -n "  ipv4 setup: "
-	run_l4test ipv4 tcp $SOURCE_PORT1 $IPV4_HOST2 0
+	run_l4_test ipv4 tcp $SOURCE_PORT1 $IPV4_HOST2 0
 	echo -n "  ipv6 setup: "
-	run_l4test ipv6 tcp $SOURCE_PORT2 $IPV6_HOST2 0
+	run_l4_test ipv6 tcp $SOURCE_PORT2 $IPV6_HOST2 0
 
 	# start udp filtering
 	$IP netns exec $NS_HOST2 \
@@ -440,9 +440,9 @@ function test_tcp {
 
 	# test connection to host 2 from host 1 (should not work)
 	echo -n "  ipv4 test: "
-	run_l4test ipv4 tcp $SOURCE_PORT3 $IPV4_HOST2 1
+	run_l4_test ipv4 tcp $SOURCE_PORT3 $IPV4_HOST2 1
 	echo -n "  ipv4 test: "
-	run_l4test ipv6 tcp $SOURCE_PORT4 $IPV6_HOST2 1
+	run_l4_test ipv6 tcp $SOURCE_PORT4 $IPV6_HOST2 1
 
 	# cleanup
 	cleanup_test
