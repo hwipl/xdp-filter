@@ -54,6 +54,9 @@ SOURCE_PORT4=2003
 # udp/tcp test file
 L4TESTFILE=l4test.out
 
+# test log file
+LOGFILE=test.log
+
 # xdp files
 XDP_USER_CMD="./xdp_filter_user"
 XDP_OBJ_FILE="xdp_filter_kern.o"
@@ -250,12 +253,12 @@ function prepare_test {
 
 	# clean up old setup and setup everything
 	tear_down > /dev/null 2>&1
-	setup > /dev/null
+	setup >> $LOGFILE
 }
 
 # clean up after a test run
 function cleanup_test {
-	tear_down > /dev/null
+	tear_down >> $LOGFILE
 }
 
 # run xdp user command on host 2
@@ -269,7 +272,7 @@ function run_ping_test {
 	local expect=$2
 
 	# run ping test
-	$IP netns exec $NS_HOST1 $PING -q -c 1 "${ip%/*}" > /dev/null
+	$IP netns exec $NS_HOST1 $PING -q -c 1 "${ip%/*}" >> $LOGFILE
 	local rc=$?
 
 	# check result and compare it with expected value
@@ -474,6 +477,10 @@ function test_tcp {
 
 # run all tests
 function test_all {
+	# print to stdout and append output to log file
+	exec &> >(tee -a "$LOGFILE")
+
+	# tests
 	test_ethernet
 	test_vlan
 	test_ipv4
