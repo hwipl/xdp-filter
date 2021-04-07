@@ -61,6 +61,9 @@ LOGFILE=test.log
 XDP_USER_CMD="./xdp_filter_user"
 XDP_OBJ_FILE="xdp_filter_kern.o"
 
+# number of errors during testing
+NUM_ERRORS=0
+
 # create testing network namespaces
 function create_namespaces {
 	echo "Creating testing network namespaces..."
@@ -280,6 +283,7 @@ function run_ping_test {
 		echo "OK"
 	else
 		echo "ERROR"
+		NUM_ERRORS=$((NUM_ERRORS + 1))
 	fi
 }
 
@@ -332,6 +336,7 @@ function run_l4_test {
 		echo "OK"
 	else
 		echo "ERROR"
+		NUM_ERRORS=$((NUM_ERRORS + 1))
 	fi
 }
 
@@ -525,5 +530,11 @@ case $1 in
 		echo "Usage:"
 		echo "$0 setup|teardown|loadall"
 		echo "$0 ethernet|vlan|ipv4|ipv6|udp|tcp|all"
+		exit 1
 		;;
 esac
+
+# print summary and return number of errors
+echo ""
+echo "Number of errors: $NUM_ERRORS"
+exit $NUM_ERRORS
