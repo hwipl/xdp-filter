@@ -82,6 +82,16 @@ function ip_link_host2 {
 	$IP netns exec $NS_HOST2 $IP link "$@"
 }
 
+# run ethtool command on host 1
+function ethtool_host1 {
+	$IP netns exec $NS_HOST1 $ETHTOOL "$@"
+}
+
+# run ethtool command on host 2
+function ethtool_host2 {
+	$IP netns exec $NS_HOST2 $ETHTOOL "$@"
+}
+
 # add veth interfaces to network namespaces
 function add_veths {
 	echo "Adding veth interfaces..."
@@ -101,15 +111,11 @@ function add_veths {
 	ip_link_host2 set $VETH_HOST2 up
 
 	# disable vlan offloading
-	$IP netns exec $NS_HOST1 \
-		$ETHTOOL -K $VETH_HOST1 tx-vlan-offload off
-	$IP netns exec $NS_HOST1 \
-		$ETHTOOL -K $VETH_HOST1 rx-vlan-offload off
+	ethtool_host1 -K $VETH_HOST1 tx-vlan-offload off
+	ethtool_host1 -K $VETH_HOST1 rx-vlan-offload off
 
-	$IP netns exec $NS_HOST2 \
-		$ETHTOOL -K $VETH_HOST2 tx-vlan-offload off
-	$IP netns exec $NS_HOST2 \
-		$ETHTOOL -K $VETH_HOST2 rx-vlan-offload off
+	ethtool_host2 -K $VETH_HOST2 tx-vlan-offload off
+	ethtool_host2 -K $VETH_HOST2 rx-vlan-offload off
 }
 
 # delete veth interfaces from network namespaces
