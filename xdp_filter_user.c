@@ -298,8 +298,12 @@ int parse_mac(const char* mac_string, char *mac) {
 }
 
 /* filter ethernet frames based on source mac addresses on device */
-int filter_ethernet(const char *device, int num_macs, char **macs) {
-	const char *xdp_prog = "filter_ethernet_drop";
+int filter_ethernet(int drop, const char *device, int num_macs, char **macs) {
+	/* set xdp program based on drop or pass mode */
+	const char *xdp_prog = "filter_ethernet_pass";
+	if (drop) {
+		xdp_prog = "filter_ethernet_drop";
+	}
 
 	/* load xdp filter_ethernet xdp program */
 	if (load_xdp("xdp_filter_kern.o", xdp_prog, device)) {
@@ -362,7 +366,15 @@ int main(int argc, char **argv) {
 		if (argc < 4) {
 			return -1;
 		}
-		return filter_ethernet(argv[2], argc - 3, argv + 3);
+		return filter_ethernet(1, argv[2], argc - 3, argv + 3);
+	}
+
+	/* pass ethernet source MACs? */
+	if (!strncmp(argv[1], "pass-eth-src-macs", 17)) {
+		if (argc < 4) {
+			return -1;
+		}
+		return filter_ethernet(0, argv[2], argc - 3, argv + 3);
 	}
 
 	/* filter vlan? */
