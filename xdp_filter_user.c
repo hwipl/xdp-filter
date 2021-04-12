@@ -357,8 +357,8 @@ int main(int argc, char **argv) {
 		return unload_xdp(argv[2]);
 	}
 
-	/* filter ethernet? */
-	if (!strncmp(argv[1], "ethernet", 8)) {
+	/* drop ethernet source MACs? */
+	if (!strncmp(argv[1], "drop-eth-src-macs", 17)) {
 		if (argc < 4) {
 			return -1;
 		}
