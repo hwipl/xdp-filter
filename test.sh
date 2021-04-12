@@ -340,21 +340,28 @@ function run_l4_test {
 	fi
 }
 
-# test ethernet filtering
-function test_ethernet {
+# test ethernet filtering (drop specified source macs)
+function test_ethernet_drop {
 	# prepare
-	echo "Ethernet:"
+	echo "Ethernet Drop Source MACs:"
 	prepare_test
 
 	# ping host 2 from host 1 (should work)
 	echo -n "  setup: "
 	run_ping_test $IPV4_HOST2 0
 
-	# start ethernet filtering
+	# start ethernet filtering with invalid mac
+	run_xdp_host2 ethernet $VETH_HOST2 00:00:00:00:00:00
+
+	# ping host 2 from host 1 (should work)
+	echo -n "  test pass: "
+	run_ping_test $IPV4_HOST2 0
+
+	# start ethernet filtering with valid mac
 	run_xdp_host2 ethernet $VETH_HOST2 $MAC_HOST1
 
 	# ping host 2 from host 1 (should not work)
-	echo -n "  test: "
+	echo -n "  test drop: "
 	run_ping_test $IPV4_HOST2 1
 
 	# cleanup
@@ -486,7 +493,7 @@ function test_all {
 	exec &> >(tee -a "$LOGFILE")
 
 	# tests
-	test_ethernet
+	test_ethernet_drop
 	test_vlan
 	test_ipv4
 	test_ipv6
@@ -505,8 +512,9 @@ case $1 in
 	"loadall")
 		load_all
 		;;
-	"ethernet")
-		test_ethernet
+	"ethernet_drop")
+		test_ethernet_drop
+		;;
 		;;
 	"vlan")
 		test_vlan
@@ -529,7 +537,8 @@ case $1 in
 	*)
 		echo "Usage:"
 		echo "$0 setup|teardown|loadall"
-		echo "$0 ethernet|vlan|ipv4|ipv6|udp|tcp|all"
+		echo "$0 vlan|ipv4|ipv6|udp|tcp|all"
+		echo "$0 ethernet_drop"
 		exit 1
 		;;
 esac
