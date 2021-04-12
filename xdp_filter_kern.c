@@ -234,7 +234,6 @@ void *get_l4_header(void *data, void *data_end, __u8 type) {
 	default:
 		return 0;
 	}
-
 }
 
 /* filter tcp ports */
