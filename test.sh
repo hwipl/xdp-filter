@@ -368,6 +368,34 @@ function test_ethernet_drop {
 	cleanup_test
 }
 
+# test ethernet filtering (pass specified source macs)
+function test_ethernet_pass {
+	# prepare
+	echo "Ethernet Pass Source MACs:"
+	prepare_test
+
+	# ping host 2 from host 1 (should work)
+	echo -n "  setup: "
+	run_ping_test $IPV4_HOST2 0
+
+	# start ethernet filtering with invalid mac
+	run_xdp_host2 pass-eth-src-macs $VETH_HOST2 00:00:00:00:00:00
+
+	# ping host 2 from host 1 (should not work)
+	echo -n "  drop test: "
+	run_ping_test $IPV4_HOST2 1
+
+	# start ethernet filtering with valid mac
+	run_xdp_host2 pass-eth-src-macs $VETH_HOST2 $MAC_HOST1
+
+	# ping host 2 from host 1 (should work)
+	echo -n "  pass test: "
+	run_ping_test $IPV4_HOST2 0
+
+	# cleanup
+	cleanup_test
+}
+
 # test vlan filtering
 function test_vlan {
 	# prepare
@@ -494,6 +522,7 @@ function test_all {
 
 	# tests
 	test_ethernet_drop
+	test_ethernet_pass
 	test_vlan
 	test_ipv4
 	test_ipv6
@@ -515,6 +544,8 @@ case $1 in
 	"ethernet_drop")
 		test_ethernet_drop
 		;;
+	"ethernet_pass")
+		test_ethernet_pass
 		;;
 	"vlan")
 		test_vlan
@@ -539,6 +570,7 @@ case $1 in
 		echo "$0 setup|teardown|loadall"
 		echo "$0 vlan|ipv4|ipv6|udp|tcp|all"
 		echo "$0 ethernet_drop"
+		echo "$0 ethernet_pass"
 		exit 1
 		;;
 esac
