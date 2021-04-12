@@ -383,6 +383,30 @@ int _filter_vlan(struct xdp_md *ctx)
 	return XDP_PASS;
 }
 
+/* accept ethernet addresses and filter everything else */
+SEC("filter_ethernet_pass")
+int _filter_ethernet_pass(struct xdp_md *ctx)
+{
+	void *data_end = (void *)(long)ctx->data_end;
+	void *data = (void *)(long)ctx->data;
+	struct ethhdr *eth = data;
+	long *value;
+
+	/* check packet length for verifier */
+	if (data + sizeof(struct ethhdr) > data_end) {
+		return XDP_DROP;
+	}
+
+	/* check if src mac is in src_macs map */
+	value = bpf_map_lookup_elem(&src_macs, eth->h_source);
+	if (value) {
+		/* found src mac, drop packet */
+		return XDP_PASS;
+	}
+
+	return XDP_DROP;
+}
+
 /* filter ethernet addresses and accept everything else */
 SEC("filter_ethernet_drop")
 int _filter_ethernet_drop(struct xdp_md *ctx)
