@@ -383,9 +383,9 @@ int _filter_vlan(struct xdp_md *ctx)
 	return XDP_PASS;
 }
 
-/* filter ethernet addresses */
-SEC("filter_ethernet")
-int _filter_ethernet(struct xdp_md *ctx)
+/* filter ethernet addresses and accept everything else */
+SEC("filter_ethernet_drop")
+int _filter_ethernet_drop(struct xdp_md *ctx)
 {
 	void *data_end = (void *)(long)ctx->data_end;
 	void *data = (void *)(long)ctx->data;

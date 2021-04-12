@@ -299,8 +299,10 @@ int parse_mac(const char* mac_string, char *mac) {
 
 /* filter ethernet frames based on source mac addresses on device */
 int filter_ethernet(const char *device, int num_macs, char **macs) {
+	const char *xdp_prog = "filter_ethernet_drop";
+
 	/* load xdp filter_ethernet xdp program */
-	if (load_xdp("xdp_filter_kern.o", "filter_ethernet", device)) {
+	if (load_xdp("xdp_filter_kern.o", xdp_prog, device)) {
 		return -1;
 	}
 
