@@ -162,7 +162,7 @@ int parse_ipv6(const char *ip_string, struct in6_addr *ip) {
 /* filter packets based on source ipv6 addresses on device */
 int filter_ipv6(const char *device, int num_ips, char **ips) {
 	/* load xdp filter_ipv6 xdp program */
-	if (load_xdp("xdp_filter_kern.o", "filter_ipv6", device)) {
+	if (load_xdp("xdp_filter_kern.o", "filter_ipv6_drop", device)) {
 		return -1;
 	}
 

@@ -296,9 +296,9 @@ int _filter_udp(struct xdp_md *ctx)
 	return XDP_PASS;
 }
 
-/* filter ipv6 addresses */
-SEC("filter_ipv6")
-int _filter_ipv6(struct xdp_md *ctx)
+/* filter ipv6 addresses and accept everything else */
+SEC("filter_ipv6_drop")
+int _filter_ipv6_drop(struct xdp_md *ctx)
 {
 	void *data_end = (void *)(long)ctx->data_end;
 	void *data = (void *)(long)ctx->data;
