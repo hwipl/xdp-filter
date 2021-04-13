@@ -255,9 +255,15 @@ int parse_vlan(const char *vlan_string, __u16 *vlan) {
 }
 
 /* filter packets based on vlan ids on device */
-int filter_vlan(const char *device, int num_vlans, char **vlans) {
+int filter_vlan(int drop, const char *device, int num_vlans, char **vlans) {
+	/* set xdp program based on drop or pass mode */
+	const char *xdp_prog = "filter_vlan_pass";
+	if (drop) {
+		xdp_prog = "filter_vlan_drop";
+	}
+
 	/* load xdp filter_vlan xdp program */
-	if (load_xdp("xdp_filter_kern.o", "filter_vlan_drop", device)) {
+	if (load_xdp("xdp_filter_kern.o", xdp_prog, device)) {
 		return -1;
 	}
 
@@ -377,12 +383,20 @@ int main(int argc, char **argv) {
 		return filter_ethernet(0, argv[2], argc - 3, argv + 3);
 	}
 
-	/* drop vlan id? */
+	/* drop vlan ids? */
 	if (!strncmp(argv[1], "drop-vlan", 9)) {
 		if (argc < 4) {
 			return -1;
 		}
-		return filter_vlan(argv[2], argc - 3, argv + 3);
+		return filter_vlan(1, argv[2], argc - 3, argv + 3);
+	}
+
+	/* pass vlan ids? */
+	if (!strncmp(argv[1], "pass-vlan", 9)) {
+		if (argc < 4) {
+			return -1;
+		}
+		return filter_vlan(0, argv[2], argc - 3, argv + 3);
 	}
 
 	/* filter ipv4? */
