@@ -377,8 +377,8 @@ int main(int argc, char **argv) {
 		return filter_ethernet(0, argv[2], argc - 3, argv + 3);
 	}
 
-	/* filter vlan? */
-	if (!strncmp(argv[1], "vlan", 4)) {
+	/* drop vlan id? */
+	if (!strncmp(argv[1], "drop-vlan", 9)) {
 		if (argc < 4) {
 			return -1;
 		}

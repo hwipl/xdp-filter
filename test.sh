@@ -414,7 +414,7 @@ function test_vlan_drop {
 	run_ping_test $IPV4_HOST2_VLAN_STACKED 0
 
 	# start vlan filtering with invalid vlan ids
-	run_xdp_host2 vlan $VETH_HOST2 $VLAN_ID_INVALID
+	run_xdp_host2 drop-vlan $VETH_HOST2 $VLAN_ID_INVALID
 
 	# ping host 2 from host 1 (should work)
 	echo -n "  test pass: "
@@ -423,7 +423,7 @@ function test_vlan_drop {
 	run_ping_test $IPV4_HOST2_VLAN_STACKED 0
 
 	# start vlan filtering with valid vlan ids
-	run_xdp_host2 vlan $VETH_HOST2 $VLAN_ID $VLAN_STACKED_ID
+	run_xdp_host2 drop-vlan $VETH_HOST2 $VLAN_ID $VLAN_STACKED_ID
 
 	# ping host 2 from host 1 (should not work)
 	echo -n "  test drop: "
