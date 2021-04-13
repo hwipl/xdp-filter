@@ -257,7 +257,7 @@ int parse_vlan(const char *vlan_string, __u16 *vlan) {
 /* filter packets based on vlan ids on device */
 int filter_vlan(const char *device, int num_vlans, char **vlans) {
 	/* load xdp filter_vlan xdp program */
-	if (load_xdp("xdp_filter_kern.o", "filter_vlan", device)) {
+	if (load_xdp("xdp_filter_kern.o", "filter_vlan_drop", device)) {
 		return -1;
 	}
 
