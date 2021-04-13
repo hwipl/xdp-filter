@@ -28,6 +28,9 @@ VLAN_ID=100
 VLAN_STACKED_DEV=vlan1
 VLAN_STACKED_ID=200
 
+# invalid vlan id (no equal other ids) for testing
+VLAN_ID_INVALID=4095
+
 # ipv4 addresses
 IPV4_HOST1="192.168.1.1/24"
 IPV4_HOST2="192.168.1.2/24"
@@ -408,13 +411,22 @@ function test_vlan_drop {
 	echo -n "  stacked setup: "
 	run_ping_test $IPV4_HOST2_VLAN_STACKED 0
 
-	# start vlan filtering
+	# start vlan filtering with invalid vlan ids
+	run_xdp_host2 vlan $VETH_HOST2 $VLAN_ID_INVALID
+
+	# ping host 2 from host 1 (should work)
+	echo -n "  test pass: "
+	run_ping_test $IPV4_HOST2_VLAN 0
+	echo -n "  stacked test pass: "
+	run_ping_test $IPV4_HOST2_VLAN_STACKED 0
+
+	# start vlan filtering with valid vlan ids
 	run_xdp_host2 vlan $VETH_HOST2 $VLAN_ID $VLAN_STACKED_ID
 
 	# ping host 2 from host 1 (should not work)
-	echo -n "  test: "
+	echo -n "  test drop: "
 	run_ping_test $IPV4_HOST2_VLAN 1
-	echo -n "  stacked test: "
+	echo -n "  stacked test drop: "
 	run_ping_test $IPV4_HOST2_VLAN_STACKED 1
 
 	# cleanup
