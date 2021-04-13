@@ -472,18 +472,25 @@ function test_vlan_pass {
 # test ipv4 filtering (drop specified ipv4 source addresses)
 function test_ipv4_drop {
 	# prepare
-	echo "IPv4:"
+	echo "IPv4 Drop Source IP Address:"
 	prepare_test
 
 	# ping host 2 from host 1 (should work)
 	echo -n "  setup: "
 	run_ping_test $IPV4_HOST2 0
 
-	# start ipv4 filtering
+	# start ipv4 filtering with invalid ip address
+	run_xdp_host2 ipv4 $VETH_HOST2 0.0.0.0
+
+	# ping host 2 from host 1 (should work)
+	echo -n "  test pass: "
+	run_ping_test $IPV4_HOST2 0
+
+	# start ipv4 filtering with valid ip address
 	run_xdp_host2 ipv4 $VETH_HOST2 ${IPV4_HOST1%/*}
 
 	# ping host 2 from host 1 (should not work)
-	echo -n "  test: "
+	echo -n "  test drop: "
 	run_ping_test $IPV4_HOST2 1
 
 	# cleanup
