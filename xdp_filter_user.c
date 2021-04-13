@@ -207,9 +207,15 @@ int parse_ipv4(const char *ip_string, __be32 *ip) {
 }
 
 /* filter packets based on source ipv4 addresses on device */
-int filter_ipv4(const char *device, int num_ips, char **ips) {
+int filter_ipv4(int drop, const char *device, int num_ips, char **ips) {
+	/* set xdp program based on drop or pass mode */
+	const char *xdp_prog = "filter_ipv4_pass";
+	if (drop) {
+		xdp_prog = "filter_ipv4_drop";
+	}
+
 	/* load xdp filter_ipv4 xdp program */
-	if (load_xdp("xdp_filter_kern.o", "filter_ipv4_drop", device)) {
+	if (load_xdp("xdp_filter_kern.o", xdp_prog, device)) {
 		return -1;
 	}
 
@@ -399,12 +405,20 @@ int main(int argc, char **argv) {
 		return filter_vlan(0, argv[2], argc - 3, argv + 3);
 	}
 
-	/* filter ipv4? */
+	/* drop ipv4 source ips? */
 	if (!strncmp(argv[1], "drop-ipv4-src", 13)) {
 		if (argc < 4) {
 			return -1;
 		}
-		return filter_ipv4(argv[2], argc - 3, argv + 3);
+		return filter_ipv4(1, argv[2], argc - 3, argv + 3);
+	}
+
+	/* pass ipv4 source ips? */
+	if (!strncmp(argv[1], "pass-ipv4-src", 13)) {
+		if (argc < 4) {
+			return -1;
+		}
+		return filter_ipv4(0, argv[2], argc - 3, argv + 3);
 	}
 
 	/* filter ipv6? */
