@@ -480,14 +480,14 @@ function test_ipv4_drop {
 	run_ping_test $IPV4_HOST2 0
 
 	# start ipv4 filtering with invalid ip address
-	run_xdp_host2 ipv4 $VETH_HOST2 0.0.0.0
+	run_xdp_host2 drop-ipv4-src $VETH_HOST2 0.0.0.0
 
 	# ping host 2 from host 1 (should work)
 	echo -n "  test pass: "
 	run_ping_test $IPV4_HOST2 0
 
 	# start ipv4 filtering with valid ip address
-	run_xdp_host2 ipv4 $VETH_HOST2 ${IPV4_HOST1%/*}
+	run_xdp_host2 drop-ipv4-src $VETH_HOST2 ${IPV4_HOST1%/*}
 
 	# ping host 2 from host 1 (should not work)
 	echo -n "  test drop: "

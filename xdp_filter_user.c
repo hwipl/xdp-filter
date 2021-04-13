@@ -400,7 +400,7 @@ int main(int argc, char **argv) {
 	}
 
 	/* filter ipv4? */
-	if (!strncmp(argv[1], "ipv4", 4)) {
+	if (!strncmp(argv[1], "drop-ipv4-src", 13)) {
 		if (argc < 4) {
 			return -1;
 		}
