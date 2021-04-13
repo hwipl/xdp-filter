@@ -469,8 +469,8 @@ function test_vlan_pass {
 	cleanup_test
 }
 
-# test ipv4 filtering
-function test_ipv4 {
+# test ipv4 filtering (drop specified ipv4 source addresses)
+function test_ipv4_drop {
 	# prepare
 	echo "IPv4:"
 	prepare_test
@@ -573,7 +573,7 @@ function test_all {
 	test_ethernet_pass
 	test_vlan_drop
 	test_vlan_pass
-	test_ipv4
+	test_ipv4_drop
 	test_ipv6
 	test_udp
 	test_tcp
@@ -603,7 +603,7 @@ case $1 in
 		test_vlan_pass
 		;;
 	"ipv4")
-		test_ipv4
+		test_ipv4_drop
 		;;
 	"ipv6")
 		test_ipv6
