@@ -561,7 +561,7 @@ case $1 in
 	"ethernet_pass")
 		test_ethernet_pass
 		;;
-	"vlan")
+	"vlan_drop")
 		test_vlan_drop
 		;;
 	"ipv4")
@@ -582,8 +582,8 @@ case $1 in
 	*)
 		echo "Usage:"
 		echo "$0 setup|teardown|loadall"
-		echo "$0 vlan|ipv4|ipv6|udp|tcp|all"
-		echo "$0 ethernet_drop"
+		echo "$0 ipv4|ipv6|udp|tcp|all"
+		echo "$0 ethernet_drop|vlan_drop"
 		echo "$0 ethernet_pass"
 		exit 1
 		;;
