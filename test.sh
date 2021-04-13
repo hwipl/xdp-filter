@@ -525,8 +525,8 @@ function test_ipv4_pass {
 	cleanup_test
 }
 
-# test ipv6 filtering
-function test_ipv6 {
+# test ipv6 filtering (drop specified ipv6 source addresses)
+function test_ipv6_drop {
 	# prepare
 	echo "IPv6:"
 	prepare_test
@@ -610,7 +610,7 @@ function test_all {
 	test_vlan_pass
 	test_ipv4_drop
 	test_ipv4_pass
-	test_ipv6
+	test_ipv6_drop
 	test_udp
 	test_tcp
 }
@@ -645,7 +645,7 @@ case $1 in
 		test_ipv4_pass
 		;;
 	"ipv6")
-		test_ipv6
+		test_ipv6_drop
 		;;
 	"udp")
 		test_udp
