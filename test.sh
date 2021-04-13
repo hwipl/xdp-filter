@@ -269,7 +269,9 @@ function cleanup_test {
 
 # run xdp user command on host 2
 function run_xdp_host2 {
-	$IP netns exec $NS_HOST2 $XDP_USER_CMD "$@"
+	if ! $IP netns exec $NS_HOST2 $XDP_USER_CMD "$@"; then
+		NUM_ERRORS=$((NUM_ERRORS + 1))
+	fi
 }
 
 # ping test helper
