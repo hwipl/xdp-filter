@@ -356,6 +356,33 @@ int _filter_ipv4(struct xdp_md *ctx)
 	return XDP_PASS;
 }
 
+/* accept vlan ids and filter everything else */
+SEC("filter_vlan_pass")
+int _filter_vlan_pass(struct xdp_md *ctx)
+{
+	void *data_end = (void *)(long)ctx->data_end;
+	void *data = (void *)(long)ctx->data;
+	struct vlan_hdr *vlan;
+	__u16 vlan_id;
+	long *value;
+
+	/* get vlan header */
+	vlan = get_first_vlan_header(data, data_end);
+	if (!vlan) {
+		return XDP_DROP;
+	}
+
+	/* check if vlan is in vlan_ids map */
+	vlan_id = ntohs(vlan->h_vlan_TCI) & VLAN_VID_MASK;
+	value = bpf_map_lookup_elem(&vlan_ids, &vlan_id);
+	if (value) {
+		/* found vlan, drop packet */
+		return XDP_PASS;
+	}
+
+	return XDP_DROP;
+}
+
 /* filter vlans and accept everything else */
 SEC("filter_vlan_drop")
 int _filter_vlan_drop(struct xdp_md *ctx)
