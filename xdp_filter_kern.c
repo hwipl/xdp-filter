@@ -326,6 +326,36 @@ int _filter_ipv6(struct xdp_md *ctx)
 	return XDP_PASS;
 }
 
+/* accept ipv4 addresses and filter everything else */
+SEC("filter_ipv4_pass")
+int _filter_ipv4_pass(struct xdp_md *ctx)
+{
+	void *data_end = (void *)(long)ctx->data_end;
+	void *data = (void *)(long)ctx->data;
+	struct iphdr *ipv4;
+	long *value;
+
+	/* get ipv4 header */
+	ipv4 = get_l3_header(data, data_end, ETH_P_IP);
+	if (!ipv4) {
+		return XDP_DROP;
+	}
+
+	/* check packet length for verifier */
+	if ((void *) (ipv4 + 1) > data_end) {
+		return XDP_DROP;
+	}
+
+	/* check if src ip is in src_ipv4s map */
+	value = bpf_map_lookup_elem(&src_ipv4s, &ipv4->saddr);
+	if (value) {
+		/* found src ip, drop packet */
+		return XDP_PASS;
+	}
+
+	return XDP_DROP;
+}
+
 /* filter ipv4 addresses and accept everything else */
 SEC("filter_ipv4_drop")
 int _filter_ipv4_drop(struct xdp_md *ctx)
