@@ -422,7 +422,7 @@ int main(int argc, char **argv) {
 	}
 
 	/* filter ipv6? */
-	if (!strncmp(argv[1], "ipv6", 4)) {
+	if (!strncmp(argv[1], "drop-ipv6-src", 13)) {
 		if (argc < 4) {
 			return -1;
 		}
