@@ -397,7 +397,7 @@ function test_ethernet_pass {
 }
 
 # test vlan filtering
-function test_vlan {
+function test_vlan_drop {
 	# prepare
 	echo "VLAN:"
 	prepare_test
@@ -523,7 +523,7 @@ function test_all {
 	# tests
 	test_ethernet_drop
 	test_ethernet_pass
-	test_vlan
+	test_vlan_drop
 	test_ipv4
 	test_ipv6
 	test_udp
@@ -548,7 +548,7 @@ case $1 in
 		test_ethernet_pass
 		;;
 	"vlan")
-		test_vlan
+		test_vlan_drop
 		;;
 	"ipv4")
 		test_ipv4
