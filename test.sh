@@ -472,7 +472,7 @@ function test_vlan_pass {
 # test ipv4 filtering (drop specified ipv4 source addresses)
 function test_ipv4_drop {
 	# prepare
-	echo "IPv4 Drop Source IP Address:"
+	echo "IPv4 Drop Source IP Addresses:"
 	prepare_test
 
 	# ping host 2 from host 1 (should work)
@@ -491,6 +491,34 @@ function test_ipv4_drop {
 
 	# ping host 2 from host 1 (should not work)
 	echo -n "  test drop: "
+	run_ping_test $IPV4_HOST2 1
+
+	# cleanup
+	cleanup_test
+}
+
+# test ipv4 filtering (pass specified ipv4 source addresses)
+function test_ipv4_pass {
+	# prepare
+	echo "IPv4 Pass Source IP Addresses:"
+	prepare_test
+
+	# ping host 2 from host 1 (should work)
+	echo -n "  setup: "
+	run_ping_test $IPV4_HOST2 0
+
+	# start ipv4 filtering with invalid ip address
+	run_xdp_host2 pass-ipv4-src $VETH_HOST2 0.0.0.0
+
+	# ping host 2 from host 1 (should not work)
+	echo -n "  test drop: "
+	run_ping_test $IPV4_HOST2 1
+
+	# start ipv4 filtering with valid ip address
+	run_xdp_host2 pass-ipv4-src $VETH_HOST2 ${IPV4_HOST1%/*}
+
+	# ping host 2 from host 1 (should work)
+	echo -n "  test pass: "
 	run_ping_test $IPV4_HOST2 1
 
 	# cleanup
@@ -581,6 +609,7 @@ function test_all {
 	test_vlan_drop
 	test_vlan_pass
 	test_ipv4_drop
+	test_ipv4_pass
 	test_ipv6
 	test_udp
 	test_tcp
@@ -612,6 +641,9 @@ case $1 in
 	"ipv4_drop")
 		test_ipv4_drop
 		;;
+	"ipv4_pass")
+		test_ipv4_pass
+		;;
 	"ipv6")
 		test_ipv6
 		;;
@@ -629,7 +661,7 @@ case $1 in
 		echo "$0 setup|teardown|loadall"
 		echo "$0 ipv6|udp|tcp|all"
 		echo "$0 ethernet_drop|vlan_drop|ipv4_drop"
-		echo "$0 ethernet_pass|vlan_pass"
+		echo "$0 ethernet_pass|vlan_pass|ipv4_pass"
 		exit 1
 		;;
 esac
