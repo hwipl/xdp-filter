@@ -326,9 +326,9 @@ int _filter_ipv6(struct xdp_md *ctx)
 	return XDP_PASS;
 }
 
-/* filter ipv4 addresses */
-SEC("filter_ipv4")
-int _filter_ipv4(struct xdp_md *ctx)
+/* filter ipv4 addresses and accept everything else */
+SEC("filter_ipv4_drop")
+int _filter_ipv4_drop(struct xdp_md *ctx)
 {
 	void *data_end = (void *)(long)ctx->data_end;
 	void *data = (void *)(long)ctx->data;

@@ -209,7 +209,7 @@ int parse_ipv4(const char *ip_string, __be32 *ip) {
 /* filter packets based on source ipv4 addresses on device */
 int filter_ipv4(const char *device, int num_ips, char **ips) {
 	/* load xdp filter_ipv4 xdp program */
-	if (load_xdp("xdp_filter_kern.o", "filter_ipv4", device)) {
+	if (load_xdp("xdp_filter_kern.o", "filter_ipv4_drop", device)) {
 		return -1;
 	}
 
