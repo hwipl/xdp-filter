@@ -401,10 +401,10 @@ function test_ethernet_pass {
 	cleanup_test
 }
 
-# test vlan filtering
+# test vlan filtering (drop specified vlan ids)
 function test_vlan_drop {
 	# prepare
-	echo "VLAN:"
+	echo "VLAN Drop VLAN IDs:"
 	prepare_test
 
 	# ping host 2 from host 1 (should work)
@@ -430,6 +430,40 @@ function test_vlan_drop {
 	run_ping_test $IPV4_HOST2_VLAN 1
 	echo -n "  stacked test drop: "
 	run_ping_test $IPV4_HOST2_VLAN_STACKED 1
+
+	# cleanup
+	cleanup_test
+}
+
+# test vlan filtering (pass specified vlan ids)
+function test_vlan_pass {
+	# prepare
+	echo "VLAN Pass VLAN IDs:"
+	prepare_test
+
+	# ping host 2 from host 1 (should work)
+	echo -n "  setup: "
+	run_ping_test $IPV4_HOST2_VLAN 0
+	echo -n "  stacked setup: "
+	run_ping_test $IPV4_HOST2_VLAN_STACKED 0
+
+	# start vlan filtering with invalid vlan ids
+	run_xdp_host2 pass-vlan $VETH_HOST2 $VLAN_ID_INVALID
+
+	# ping host 2 from host 1 (should not work)
+	echo -n "  test drop: "
+	run_ping_test $IPV4_HOST2_VLAN 1
+	echo -n "  stacked test drop: "
+	run_ping_test $IPV4_HOST2_VLAN_STACKED 1
+
+	# start vlan filtering with valid vlan ids
+	run_xdp_host2 pass-vlan $VETH_HOST2 $VLAN_ID $VLAN_STACKED_ID
+
+	# ping host 2 from host 1 (should work)
+	echo -n "  test pass: "
+	run_ping_test $IPV4_HOST2_VLAN 0
+	echo -n "  stacked test pass: "
+	run_ping_test $IPV4_HOST2_VLAN_STACKED 0
 
 	# cleanup
 	cleanup_test
@@ -538,6 +572,7 @@ function test_all {
 	test_ethernet_drop
 	test_ethernet_pass
 	test_vlan_drop
+	test_vlan_pass
 	test_ipv4
 	test_ipv6
 	test_udp
@@ -564,6 +599,9 @@ case $1 in
 	"vlan_drop")
 		test_vlan_drop
 		;;
+	"vlan_pass")
+		test_vlan_pass
+		;;
 	"ipv4")
 		test_ipv4
 		;;
@@ -584,7 +622,7 @@ case $1 in
 		echo "$0 setup|teardown|loadall"
 		echo "$0 ipv4|ipv6|udp|tcp|all"
 		echo "$0 ethernet_drop|vlan_drop"
-		echo "$0 ethernet_pass"
+		echo "$0 ethernet_pass|vlan_pass"
 		exit 1
 		;;
 esac
