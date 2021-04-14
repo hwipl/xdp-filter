@@ -115,9 +115,15 @@ int filter_tcp(const char *device, int num_ports, char **ports) {
 }
 
 /* filter packets based on source udp ports on device */
-int filter_udp(const char *device, int num_ports, char **ports) {
+int filter_udp(int drop, const char *device, int num_ports, char **ports) {
+	/* set xdp program based on drop or pass mode */
+	const char *xdp_prog = "filter_udp_pass";
+	if (drop) {
+		xdp_prog = "filter_udp_drop";
+	}
+
 	/* load xdp filter_udp xdp program */
-	if (load_xdp("xdp_filter_kern.o", "filter_udp_drop", device)) {
+	if (load_xdp("xdp_filter_kern.o", xdp_prog, device)) {
 		return -1;
 	}
 
@@ -443,12 +449,20 @@ int main(int argc, char **argv) {
 		return filter_ipv6(0, argv[2], argc - 3, argv + 3);
 	}
 
-	/* filter udp? */
+	/* drop udp source ports? */
 	if (!strncmp(argv[1], "drop-udp-src", 12)) {
 		if (argc < 4) {
 			return -1;
 		}
-		return filter_udp(argv[2], argc - 3, argv + 3);
+		return filter_udp(1, argv[2], argc - 3, argv + 3);
+	}
+
+	/* pass udp source ports? */
+	if (!strncmp(argv[1], "pass-udp-src", 12)) {
+		if (argc < 4) {
+			return -1;
+		}
+		return filter_udp(0, argv[2], argc - 3, argv + 3);
 	}
 
 	/* filter tcp? */
