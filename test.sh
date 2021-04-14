@@ -581,10 +581,10 @@ function test_ipv6_pass {
 	cleanup_test
 }
 
-# test udp filtering
-function test_udp {
+# test udp filtering (drop specified udp source ports)
+function test_udp_drop {
 	# prepare
-	echo "UDP:"
+	echo "UDP Drop Source Ports:"
 	prepare_test
 
 	# test connection to host 2 from host 1 (should work)
@@ -647,7 +647,7 @@ function test_all {
 	test_ipv4_pass
 	test_ipv6_drop
 	test_ipv6_pass
-	test_udp
+	test_udp_drop
 	test_tcp
 }
 
@@ -687,7 +687,7 @@ case $1 in
 		test_ipv6_pass
 		;;
 	"udp")
-		test_udp
+		test_udp_drop
 		;;
 	"tcp")
 		test_tcp
