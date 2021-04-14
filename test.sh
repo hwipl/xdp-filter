@@ -698,7 +698,7 @@ case $1 in
 	"ipv6_pass")
 		test_ipv6_pass
 		;;
-	"udp")
+	"udp_drop")
 		test_udp_drop
 		;;
 	"tcp")
@@ -710,8 +710,8 @@ case $1 in
 	*)
 		echo "Usage:"
 		echo "$0 setup|teardown|loadall"
-		echo "$0 udp|tcp|all"
-		echo "$0 ethernet_drop|vlan_drop|ipv4_drop|ipv6_drop"
+		echo "$0 tcp|all"
+		echo "$0 ethernet_drop|vlan_drop|ipv4_drop|ipv6_drop|udp_drop"
 		echo "$0 ethernet_pass|vlan_pass|ipv4_pass|ipv6_pass"
 		exit 1
 		;;
