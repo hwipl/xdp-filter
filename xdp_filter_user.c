@@ -444,7 +444,7 @@ int main(int argc, char **argv) {
 	}
 
 	/* filter udp? */
-	if (!strncmp(argv[1], "udp", 3)) {
+	if (!strncmp(argv[1], "drop-udp-src", 12)) {
 		if (argc < 4) {
 			return -1;
 		}

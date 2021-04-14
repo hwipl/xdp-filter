@@ -597,7 +597,7 @@ function test_udp_drop {
 	run_l4_test ipv6 udp $SOURCE_PORT2 $IPV6_HOST2 0
 
 	# start udp filtering with invalid port
-	run_xdp_host2 udp $VETH_HOST2 $SOURCE_PORT_INVALID
+	run_xdp_host2 drop-udp-src $VETH_HOST2 $SOURCE_PORT_INVALID
 
 	# test connection to host 2 from host 1 (should work)
 	echo -n "  ipv4 test pass: "
@@ -606,7 +606,7 @@ function test_udp_drop {
 	run_l4_test ipv6 udp $SOURCE_PORT4 $IPV6_HOST2 0
 
 	# start udp filtering with valid ports
-	run_xdp_host2 udp $VETH_HOST2 \
+	run_xdp_host2 drop-udp-src $VETH_HOST2 \
 		$SOURCE_PORT1 $SOURCE_PORT2 $SOURCE_PORT3 $SOURCE_PORT4
 
 	# test connection to host 2 from host 1 (should not work)
