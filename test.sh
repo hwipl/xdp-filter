@@ -28,7 +28,7 @@ VLAN_ID=100
 VLAN_STACKED_DEV=vlan1
 VLAN_STACKED_ID=200
 
-# invalid vlan id (no equal other ids) for testing
+# invalid vlan id (not equal to any other id above) for testing
 VLAN_ID_INVALID=4095
 
 # ipv4 addresses
