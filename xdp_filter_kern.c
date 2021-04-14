@@ -266,9 +266,9 @@ int _filter_tcp(struct xdp_md *ctx)
 	return XDP_PASS;
 }
 
-/* filter udp ports */
-SEC("filter_udp")
-int _filter_udp(struct xdp_md *ctx)
+/* filter udp ports and accept everything else */
+SEC("filter_udp_drop")
+int _filter_udp_drop(struct xdp_md *ctx)
 {
 	void *data_end = (void *)(long)ctx->data_end;
 	void *data = (void *)(long)ctx->data;

@@ -117,7 +117,7 @@ int filter_tcp(const char *device, int num_ports, char **ports) {
 /* filter packets based on source udp ports on device */
 int filter_udp(const char *device, int num_ports, char **ports) {
 	/* load xdp filter_udp xdp program */
-	if (load_xdp("xdp_filter_kern.o", "filter_udp", device)) {
+	if (load_xdp("xdp_filter_kern.o", "filter_udp_drop", device)) {
 		return -1;
 	}
 
