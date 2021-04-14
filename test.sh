@@ -619,6 +619,41 @@ function test_udp_drop {
 	cleanup_test
 }
 
+# test udp filtering (pass specified udp source ports)
+function test_udp_pass {
+	# prepare
+	echo "UDP Pass Source Ports:"
+	prepare_test
+
+	# test connection to host 2 from host 1 (should work)
+	echo -n "  ipv4 setup: "
+	run_l4_test ipv4 udp $SOURCE_PORT1 $IPV4_HOST2 0
+	echo -n "  ipv6 setup: "
+	run_l4_test ipv6 udp $SOURCE_PORT2 $IPV6_HOST2 0
+
+	# start udp filtering with invalid port
+	run_xdp_host2 pass-udp-src $VETH_HOST2 $SOURCE_PORT_INVALID
+
+	# test connection to host 2 from host 1 (should not work)
+	echo -n "  ipv4 test drop: "
+	run_l4_test ipv4 udp $SOURCE_PORT3 $IPV4_HOST2 1
+	echo -n "  ipv6 test drop: "
+	run_l4_test ipv6 udp $SOURCE_PORT4 $IPV6_HOST2 1
+
+	# start udp filtering with valid ports
+	run_xdp_host2 pass-udp-src $VETH_HOST2 \
+		$SOURCE_PORT1 $SOURCE_PORT2 $SOURCE_PORT3 $SOURCE_PORT4
+
+	# test connection to host 2 from host 1 (should work)
+	echo -n "  ipv4 test pass: "
+	run_l4_test ipv4 udp $SOURCE_PORT3 $IPV4_HOST2 0
+	echo -n "  ipv6 test pass: "
+	run_l4_test ipv6 udp $SOURCE_PORT4 $IPV6_HOST2 0
+
+	# cleanup
+	cleanup_test
+}
+
 # test tcp filtering
 function test_tcp {
 	# prepare
@@ -660,6 +695,7 @@ function test_all {
 	test_ipv6_drop
 	test_ipv6_pass
 	test_udp_drop
+	test_udp_pass
 	test_tcp
 }
 
@@ -701,6 +737,9 @@ case $1 in
 	"udp_drop")
 		test_udp_drop
 		;;
+	"udp_pass")
+		test_udp_pass
+		;;
 	"tcp")
 		test_tcp
 		;;
@@ -712,7 +751,7 @@ case $1 in
 		echo "$0 setup|teardown|loadall"
 		echo "$0 tcp|all"
 		echo "$0 ethernet_drop|vlan_drop|ipv4_drop|ipv6_drop|udp_drop"
-		echo "$0 ethernet_pass|vlan_pass|ipv4_pass|ipv6_pass"
+		echo "$0 ethernet_pass|vlan_pass|ipv4_pass|ipv6_pass|udp_pass"
 		exit 1
 		;;
 esac
