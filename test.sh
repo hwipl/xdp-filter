@@ -186,6 +186,16 @@ function ip_addr_host2 {
 	$IP netns exec $NS_HOST2 $IP address "$@"
 }
 
+# run ip neighbor command on host 1
+function ip_neigh_host1 {
+	$IP netns exec $NS_HOST1 $IP neighbor "$@"
+}
+
+# run ip neighbor command on host 1
+function ip_neigh_host2 {
+	$IP netns exec $NS_HOST2 $IP neighbor "$@"
+}
+
 # add ip addresses to veth interfaces
 function add_ips {
 	echo "Adding ip addresses to veth interfaces..."
@@ -216,6 +226,38 @@ function add_ips {
 
 	# wait for ipv6 dad
 	sleep 3
+
+	# add veth peer ipv4 addresses to neighbor caches
+	ip_neigh_host1 add ${IPV4_HOST2%/*} lladdr $MAC_HOST2 dev $VETH_HOST1
+	ip_neigh_host2 add ${IPV4_HOST1%/*} lladdr $MAC_HOST1 dev $VETH_HOST2
+
+	# add vlan peer ipv4 addresses to neighbor caches
+	ip_neigh_host1 add ${IPV4_HOST2_VLAN%/*} lladdr $MAC_HOST2 \
+		dev $VLAN_DEV
+	ip_neigh_host2 add ${IPV4_HOST1_VLAN%/*} lladdr $MAC_HOST1 \
+		dev $VLAN_DEV
+
+	# add stacked vlan peer ipv4 addresses to neighbor caches
+	ip_neigh_host1 add ${IPV4_HOST2_VLAN_STACKED%/*} lladdr $MAC_HOST2 \
+		dev $VLAN_STACKED_DEV
+	ip_neigh_host2 add ${IPV4_HOST1_VLAN_STACKED%/*} lladdr $MAC_HOST1 \
+		dev $VLAN_STACKED_DEV
+
+	# add veth peer ipv6 addresses to neighbor caches
+	ip_neigh_host1 add ${IPV6_HOST2%/*} lladdr $MAC_HOST2 dev $VETH_HOST1
+	ip_neigh_host2 add ${IPV6_HOST1%/*} lladdr $MAC_HOST1 dev $VETH_HOST2
+
+	# add vlan peer ipv6 addresses to neighbor caches
+	ip_neigh_host1 add ${IPV6_HOST2_VLAN%/*} lladdr $MAC_HOST2 \
+		dev $VLAN_DEV
+	ip_neigh_host2 add ${IPV6_HOST1_VLAN%/*} lladdr $MAC_HOST1 \
+		dev $VLAN_DEV
+
+	# add stacked vlan peer ipv6 addresses to neighbor caches
+	ip_neigh_host1 add ${IPV6_HOST2_VLAN_STACKED%/*} lladdr $MAC_HOST2 \
+		dev $VLAN_STACKED_DEV
+	ip_neigh_host2 add ${IPV6_HOST1_VLAN_STACKED%/*} lladdr $MAC_HOST1 \
+		dev $VLAN_STACKED_DEV
 }
 
 # set everything up
