@@ -687,7 +687,7 @@ function test_tcp_drop {
 	# test connection to host 2 from host 1 (should not work)
 	echo -n "  ipv4 test drop: "
 	run_l4_test ipv4 tcp $SOURCE_PORT5 $IPV4_HOST2 1
-	echo -n "  ipv4 test drop: "
+	echo -n "  ipv6 test drop: "
 	run_l4_test ipv6 tcp $SOURCE_PORT6 $IPV6_HOST2 1
 
 	# cleanup
