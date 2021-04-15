@@ -266,6 +266,36 @@ int _filter_tcp_drop(struct xdp_md *ctx)
 	return XDP_PASS;
 }
 
+/* accept tcp ports and filter everything else */
+SEC("filter_tcp_pass")
+int _filter_tcp_pass(struct xdp_md *ctx)
+{
+	void *data_end = (void *)(long)ctx->data_end;
+	void *data = (void *)(long)ctx->data;
+	struct tcphdr *tcp;
+	long *value;
+
+	/* get tcp header */
+	tcp = get_l4_header(data, data_end, IPPROTO_TCP);
+	if (!tcp) {
+		return XDP_DROP;
+	}
+
+	/* check packet length for verifier */
+	if ((void *) (tcp + 1) > data_end) {
+		return XDP_DROP;
+	}
+
+	/* check if src port is in src_tcps map */
+	value = bpf_map_lookup_elem(&src_tcps, &tcp->source);
+	if (value) {
+		/* found src port, drop packet */
+		return XDP_PASS;
+	}
+
+	return XDP_DROP;
+}
+
 /* filter udp ports and accept everything else */
 SEC("filter_udp_drop")
 int _filter_udp_drop(struct xdp_md *ctx)
