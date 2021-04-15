@@ -78,9 +78,15 @@ int parse_port(const char *port_string, __be16 *port) {
 }
 
 /* filter packets based on source tcp ports on device */
-int filter_tcp(const char *device, int num_ports, char **ports) {
+int filter_tcp(int drop, const char *device, int num_ports, char **ports) {
+	/* set xdp program based on drop or pass mode */
+	const char *xdp_prog = "filter_tcp_pass";
+	if (drop) {
+		xdp_prog = "filter_tcp_drop";
+	}
+
 	/* load xdp filter_udp xdp program */
-	if (load_xdp("xdp_filter_kern.o", "filter_tcp_drop", device)) {
+	if (load_xdp("xdp_filter_kern.o", xdp_prog, device)) {
 		return -1;
 	}
 
@@ -470,7 +476,15 @@ int main(int argc, char **argv) {
 		if (argc < 4) {
 			return -1;
 		}
-		return filter_tcp(argv[2], argc - 3, argv + 3);
+		return filter_tcp(1, argv[2], argc - 3, argv + 3);
+	}
+
+	/* pass tcp source ports? */
+	if (!strncmp(argv[1], "pass-tcp-src", 12)) {
+		if (argc < 4) {
+			return -1;
+		}
+		return filter_tcp(0, argv[2], argc - 3, argv + 3);
 	}
 
 	return -1;
