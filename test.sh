@@ -191,7 +191,7 @@ function ip_neigh_host1 {
 	$IP netns exec $NS_HOST1 $IP neighbor "$@"
 }
 
-# run ip neighbor command on host 1
+# run ip neighbor command on host 2
 function ip_neigh_host2 {
 	$IP netns exec $NS_HOST2 $IP neighbor "$@"
 }
