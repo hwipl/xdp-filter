@@ -654,10 +654,10 @@ function test_udp_pass {
 	cleanup_test
 }
 
-# test tcp filtering
-function test_tcp {
+# test tcp filtering (drop specified tcp source ports)
+function test_tcp_drop {
 	# prepare
-	echo "TCP:"
+	echo "TCP Drop Source Ports:"
 	prepare_test
 
 	# test connection to host 2 from host 1 (should work)
@@ -696,7 +696,7 @@ function test_all {
 	test_ipv6_pass
 	test_udp_drop
 	test_udp_pass
-	test_tcp
+	test_tcp_drop
 }
 
 # handle command line arguments
@@ -741,7 +741,7 @@ case $1 in
 		test_udp_pass
 		;;
 	"tcp")
-		test_tcp
+		test_tcp_drop
 		;;
 	"all")
 		test_all
