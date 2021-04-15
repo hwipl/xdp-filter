@@ -236,9 +236,9 @@ void *get_l4_header(void *data, void *data_end, __u8 type) {
 	}
 }
 
-/* filter tcp ports */
-SEC("filter_tcp")
-int _filter_tcp(struct xdp_md *ctx)
+/* filter tcp ports and accept everything else */
+SEC("filter_tcp_drop")
+int _filter_tcp_drop(struct xdp_md *ctx)
 {
 	void *data_end = (void *)(long)ctx->data_end;
 	void *data = (void *)(long)ctx->data;

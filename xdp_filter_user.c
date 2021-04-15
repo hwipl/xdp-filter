@@ -80,7 +80,7 @@ int parse_port(const char *port_string, __be16 *port) {
 /* filter packets based on source tcp ports on device */
 int filter_tcp(const char *device, int num_ports, char **ports) {
 	/* load xdp filter_udp xdp program */
-	if (load_xdp("xdp_filter_kern.o", "filter_tcp", device)) {
+	if (load_xdp("xdp_filter_kern.o", "filter_tcp_drop", device)) {
 		return -1;
 	}
 
