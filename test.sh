@@ -670,15 +670,25 @@ function test_tcp_drop {
 	echo -n "  ipv6 setup: "
 	run_l4_test ipv6 tcp $SOURCE_PORT2 $IPV6_HOST2 0
 
-	# start udp filtering
+	# start tcp filtering with invalid port
+	run_xdp_host2 tcp $VETH_HOST2 $SOURCE_PORT_INVALID
+
+	# test connection to host 2 from host 1 (should work)
+	echo -n "  ipv4 test pass: "
+	run_l4_test ipv4 tcp $SOURCE_PORT3 $IPV4_HOST2 0
+	echo -n "  ipv6 test pass: "
+	run_l4_test ipv6 tcp $SOURCE_PORT4 $IPV6_HOST2 0
+
+	# start tcp filtering with valid ports
 	run_xdp_host2 tcp $VETH_HOST2 \
-		$SOURCE_PORT1 $SOURCE_PORT2 $SOURCE_PORT3 $SOURCE_PORT4
+		$SOURCE_PORT1 $SOURCE_PORT2 $SOURCE_PORT3 $SOURCE_PORT4 \
+		$SOURCE_PORT5 $SOURCE_PORT6
 
 	# test connection to host 2 from host 1 (should not work)
-	echo -n "  ipv4 test: "
-	run_l4_test ipv4 tcp $SOURCE_PORT3 $IPV4_HOST2 1
-	echo -n "  ipv4 test: "
-	run_l4_test ipv6 tcp $SOURCE_PORT4 $IPV6_HOST2 1
+	echo -n "  ipv4 test drop: "
+	run_l4_test ipv4 tcp $SOURCE_PORT5 $IPV4_HOST2 1
+	echo -n "  ipv4 test drop: "
+	run_l4_test ipv6 tcp $SOURCE_PORT6 $IPV6_HOST2 1
 
 	# cleanup
 	cleanup_test
