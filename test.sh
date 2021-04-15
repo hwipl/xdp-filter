@@ -694,6 +694,42 @@ function test_tcp_drop {
 	cleanup_test
 }
 
+# test tcp filtering (pass specified tcp source ports)
+function test_tcp_pass {
+	# prepare
+	echo "TCP Pass Source Ports:"
+	prepare_test
+
+	# test connection to host 2 from host 1 (should work)
+	echo -n "  ipv4 setup: "
+	run_l4_test ipv4 tcp $SOURCE_PORT1 $IPV4_HOST2 0
+	echo -n "  ipv6 setup: "
+	run_l4_test ipv6 tcp $SOURCE_PORT2 $IPV6_HOST2 0
+
+	# start tcp filtering with invalid port
+	run_xdp_host2 pass-tcp-src $VETH_HOST2 $SOURCE_PORT_INVALID
+
+	# test connection to host 2 from host 1 (should not work)
+	echo -n "  ipv4 test drop: "
+	run_l4_test ipv4 tcp $SOURCE_PORT3 $IPV4_HOST2 1
+	echo -n "  ipv6 test drop: "
+	run_l4_test ipv6 tcp $SOURCE_PORT4 $IPV6_HOST2 1
+
+	# start tcp filtering with valid ports
+	run_xdp_host2 pass-tcp-src $VETH_HOST2 \
+		$SOURCE_PORT1 $SOURCE_PORT2 $SOURCE_PORT3 $SOURCE_PORT4 \
+		$SOURCE_PORT5 $SOURCE_PORT6
+
+	# test connection to host 2 from host 1 (should work)
+	echo -n "  ipv4 test pass: "
+	run_l4_test ipv4 tcp $SOURCE_PORT5 $IPV4_HOST2 0
+	echo -n "  ipv6 test pass: "
+	run_l4_test ipv6 tcp $SOURCE_PORT6 $IPV6_HOST2 0
+
+	# cleanup
+	cleanup_test
+}
+
 # run all tests
 function test_all {
 	# print to stdout and append output to log file
@@ -711,6 +747,7 @@ function test_all {
 	test_udp_drop
 	test_udp_pass
 	test_tcp_drop
+	test_tcp_pass
 }
 
 # handle command line arguments
@@ -757,6 +794,9 @@ case $1 in
 	"tcp_drop")
 		test_tcp_drop
 		;;
+	"tcp_pass")
+		test_tcp_pass
+		;;
 	"all")
 		test_all
 		;;
@@ -764,7 +804,7 @@ case $1 in
 		echo "Usage:"
 		echo "$0 setup|teardown|loadall"
 		echo "$0 ethernet_drop|vlan_drop|ipv4_drop|ipv6_drop|udp_drop|tcp_drop"
-		echo "$0 ethernet_pass|vlan_pass|ipv4_pass|ipv6_pass|udp_pass"
+		echo "$0 ethernet_pass|vlan_pass|ipv4_pass|ipv6_pass|udp_pass|tcp_pass"
 		echo "$0 all"
 		exit 1
 		;;
