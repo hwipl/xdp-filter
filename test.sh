@@ -754,7 +754,7 @@ case $1 in
 	"udp_pass")
 		test_udp_pass
 		;;
-	"tcp")
+	"tcp_drop")
 		test_tcp_drop
 		;;
 	"all")
@@ -763,9 +763,9 @@ case $1 in
 	*)
 		echo "Usage:"
 		echo "$0 setup|teardown|loadall"
-		echo "$0 tcp|all"
-		echo "$0 ethernet_drop|vlan_drop|ipv4_drop|ipv6_drop|udp_drop"
+		echo "$0 ethernet_drop|vlan_drop|ipv4_drop|ipv6_drop|udp_drop|tcp_drop"
 		echo "$0 ethernet_pass|vlan_pass|ipv4_pass|ipv6_pass|udp_pass"
+		echo "$0 all"
 		exit 1
 		;;
 esac
