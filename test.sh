@@ -53,6 +53,8 @@ SOURCE_PORT1=2000
 SOURCE_PORT2=2001
 SOURCE_PORT3=2002
 SOURCE_PORT4=2003
+SOURCE_PORT5=2004
+SOURCE_PORT6=2005
 
 # invalid port (not equal to any other id above) for testing
 SOURCE_PORT_INVALID=1
@@ -607,13 +609,14 @@ function test_udp_drop {
 
 	# start udp filtering with valid ports
 	run_xdp_host2 drop-udp-src $VETH_HOST2 \
-		$SOURCE_PORT1 $SOURCE_PORT2 $SOURCE_PORT3 $SOURCE_PORT4
+		$SOURCE_PORT1 $SOURCE_PORT2 $SOURCE_PORT3 $SOURCE_PORT4 \
+		$SOURCE_PORT5 $SOURCE_PORT6
 
 	# test connection to host 2 from host 1 (should not work)
 	echo -n "  ipv4 test drop: "
-	run_l4_test ipv4 udp $SOURCE_PORT3 $IPV4_HOST2 1
+	run_l4_test ipv4 udp $SOURCE_PORT5 $IPV4_HOST2 1
 	echo -n "  ipv6 test drop: "
-	run_l4_test ipv6 udp $SOURCE_PORT4 $IPV6_HOST2 1
+	run_l4_test ipv6 udp $SOURCE_PORT6 $IPV6_HOST2 1
 
 	# cleanup
 	cleanup_test
@@ -642,13 +645,14 @@ function test_udp_pass {
 
 	# start udp filtering with valid ports
 	run_xdp_host2 pass-udp-src $VETH_HOST2 \
-		$SOURCE_PORT1 $SOURCE_PORT2 $SOURCE_PORT3 $SOURCE_PORT4
+		$SOURCE_PORT1 $SOURCE_PORT2 $SOURCE_PORT3 $SOURCE_PORT4 \
+		$SOURCE_PORT5 $SOURCE_PORT6
 
 	# test connection to host 2 from host 1 (should work)
 	echo -n "  ipv4 test pass: "
-	run_l4_test ipv4 udp $SOURCE_PORT3 $IPV4_HOST2 0
+	run_l4_test ipv4 udp $SOURCE_PORT5 $IPV4_HOST2 0
 	echo -n "  ipv6 test pass: "
-	run_l4_test ipv6 udp $SOURCE_PORT4 $IPV6_HOST2 0
+	run_l4_test ipv6 udp $SOURCE_PORT6 $IPV6_HOST2 0
 
 	# cleanup
 	cleanup_test
