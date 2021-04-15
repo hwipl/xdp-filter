@@ -465,8 +465,8 @@ int main(int argc, char **argv) {
 		return filter_udp(0, argv[2], argc - 3, argv + 3);
 	}
 
-	/* filter tcp? */
-	if (!strncmp(argv[1], "tcp", 3)) {
+	/* drop tcp source ports? */
+	if (!strncmp(argv[1], "drop-tcp-src", 12)) {
 		if (argc < 4) {
 			return -1;
 		}
