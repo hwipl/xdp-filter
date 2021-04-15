@@ -524,7 +524,7 @@ function test_ipv4_pass {
 
 	# ping host 2 from host 1 (should work)
 	echo -n "  test pass: "
-	run_ping_test $IPV4_HOST2 1
+	run_ping_test $IPV4_HOST2 0
 
 	# cleanup
 	cleanup_test
