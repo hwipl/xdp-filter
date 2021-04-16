@@ -370,9 +370,24 @@ int filter_ethernet(int drop, const char *device, int num_macs, char **macs) {
 	return 0;
 }
 
+/* print usage to the console */
+void usage(const char *name) {
+	printf("Usage:\n"
+	       "  %1$s load <file> <section> <device>\n"
+	       "  %1$s unload <device>\n"
+	       "  %1$s drop-eth-src|pass-eth-src <device> <macs>\n"
+	       "  %1$s drop-vlan|pass-vlan <device> <vlan_ids>\n"
+	       "  %1$s drop-ipv4-src|pass-ipv4-src <device> <ips>\n"
+	       "  %1$s drop-ipv6-src|pass-ipv6-src <device> <ips>\n"
+	       "  %1$s drop-udp-src|pass-udp-src <device> <ports>\n"
+	       "  %1$s drop-tcp-src|pass-tcp-src <device> <ports>\n"
+	       "", name);
+}
+
 int main(int argc, char **argv) {
 	/* following commands require at least 2 parameters */
 	if (argc < 3) {
+		usage(argv[0]);
 		return -1;
 	}
 
@@ -383,6 +398,7 @@ int main(int argc, char **argv) {
 
 	/* following commands require at least 3 parameters */
 	if (argc < 4) {
+		usage(argv[0]);
 		return -1;
 	}
 
@@ -448,6 +464,7 @@ int main(int argc, char **argv) {
 
 	/* following commands require at least 4 parameters */
 	if (argc < 5) {
+		usage(argv[0]);
 		return -1;
 	}
 
@@ -457,5 +474,6 @@ int main(int argc, char **argv) {
 	}
 
 	/* no valid command line argument */
+	usage(argv[0]);
 	return -1;
 }
