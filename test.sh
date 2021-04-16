@@ -566,6 +566,10 @@ function test_ipv4_pass {
 	# ping host 2 from host 1 (should work)
 	echo -n "  setup: "
 	run_ping_test $IPV4_HOST2 0
+	echo -n "  setup vlan: "
+	run_ping_test $IPV4_HOST2_VLAN 0
+	echo -n "  setup vlan stacked: "
+	run_ping_test $IPV4_HOST2_VLAN_STACKED 0
 
 	# start ipv4 filtering with invalid ip address
 	run_xdp_host2 pass-ipv4-src $VETH_HOST2 0.0.0.0
@@ -573,13 +577,22 @@ function test_ipv4_pass {
 	# ping host 2 from host 1 (should not work)
 	echo -n "  test drop: "
 	run_ping_test $IPV4_HOST2 1
+	echo -n "  test drop vlan: "
+	run_ping_test $IPV4_HOST2_VLAN 1
+	echo -n "  test drop vlan stacked: "
+	run_ping_test $IPV4_HOST2_VLAN_STACKED 1
 
 	# start ipv4 filtering with valid ip address
-	run_xdp_host2 pass-ipv4-src $VETH_HOST2 ${IPV4_HOST1%/*}
+	run_xdp_host2 pass-ipv4-src $VETH_HOST2 ${IPV4_HOST1%/*} \
+		${IPV4_HOST1_VLAN%/*} ${IPV4_HOST1_VLAN_STACKED%/*}
 
 	# ping host 2 from host 1 (should work)
 	echo -n "  test pass: "
 	run_ping_test $IPV4_HOST2 0
+	echo -n "  test pass vlan: "
+	run_ping_test $IPV4_HOST2_VLAN 0
+	echo -n "  test pass vlan stacked: "
+	run_ping_test $IPV4_HOST2_VLAN_STACKED 0
 
 	# cleanup
 	cleanup_test
