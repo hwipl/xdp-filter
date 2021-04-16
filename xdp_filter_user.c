@@ -371,121 +371,91 @@ int filter_ethernet(int drop, const char *device, int num_macs, char **macs) {
 }
 
 int main(int argc, char **argv) {
-	if (argc < 2) {
+	/* following commands require at least 2 parameters */
+	if (argc < 3) {
 		return -1;
-	}
-
-	/* load xdp program? */
-	if (!strncmp(argv[1], "load", 4)) {
-		if (argc < 5) {
-			return -1;
-		}
-		return load_xdp(argv[2], argv[3], argv[4]);
 	}
 
 	/* unload xdp program? */
 	if (!strncmp(argv[1], "unload", 6)) {
-		if (argc < 3) {
-			return -1;
-		}
 		return unload_xdp(argv[2]);
+	}
+
+	/* following commands require at least 3 parameters */
+	if (argc < 4) {
+		return -1;
 	}
 
 	/* drop ethernet source MACs? */
 	if (!strncmp(argv[1], "drop-eth-src-macs", 17)) {
-		if (argc < 4) {
-			return -1;
-		}
 		return filter_ethernet(1, argv[2], argc - 3, argv + 3);
 	}
 
 	/* pass ethernet source MACs? */
 	if (!strncmp(argv[1], "pass-eth-src-macs", 17)) {
-		if (argc < 4) {
-			return -1;
-		}
 		return filter_ethernet(0, argv[2], argc - 3, argv + 3);
 	}
 
 	/* drop vlan ids? */
 	if (!strncmp(argv[1], "drop-vlan", 9)) {
-		if (argc < 4) {
-			return -1;
-		}
 		return filter_vlan(1, argv[2], argc - 3, argv + 3);
 	}
 
 	/* pass vlan ids? */
 	if (!strncmp(argv[1], "pass-vlan", 9)) {
-		if (argc < 4) {
-			return -1;
-		}
 		return filter_vlan(0, argv[2], argc - 3, argv + 3);
 	}
 
 	/* drop ipv4 source ips? */
 	if (!strncmp(argv[1], "drop-ipv4-src", 13)) {
-		if (argc < 4) {
-			return -1;
-		}
 		return filter_ipv4(1, argv[2], argc - 3, argv + 3);
 	}
 
 	/* pass ipv4 source ips? */
 	if (!strncmp(argv[1], "pass-ipv4-src", 13)) {
-		if (argc < 4) {
-			return -1;
-		}
 		return filter_ipv4(0, argv[2], argc - 3, argv + 3);
 	}
 
 	/* drop ipv6 source ips? */
 	if (!strncmp(argv[1], "drop-ipv6-src", 13)) {
-		if (argc < 4) {
-			return -1;
-		}
 		return filter_ipv6(1, argv[2], argc - 3, argv + 3);
 	}
 
 	/* pass ipv6 source ips? */
 	if (!strncmp(argv[1], "pass-ipv6-src", 13)) {
-		if (argc < 4) {
-			return -1;
-		}
 		return filter_ipv6(0, argv[2], argc - 3, argv + 3);
 	}
 
 	/* drop udp source ports? */
 	if (!strncmp(argv[1], "drop-udp-src", 12)) {
-		if (argc < 4) {
-			return -1;
-		}
 		return filter_udp(1, argv[2], argc - 3, argv + 3);
 	}
 
 	/* pass udp source ports? */
 	if (!strncmp(argv[1], "pass-udp-src", 12)) {
-		if (argc < 4) {
-			return -1;
-		}
 		return filter_udp(0, argv[2], argc - 3, argv + 3);
 	}
 
 	/* drop tcp source ports? */
 	if (!strncmp(argv[1], "drop-tcp-src", 12)) {
-		if (argc < 4) {
-			return -1;
-		}
 		return filter_tcp(1, argv[2], argc - 3, argv + 3);
 	}
 
 	/* pass tcp source ports? */
 	if (!strncmp(argv[1], "pass-tcp-src", 12)) {
-		if (argc < 4) {
-			return -1;
-		}
 		return filter_tcp(0, argv[2], argc - 3, argv + 3);
 	}
 
+	/* following commands require at least 4 parameters */
+	if (argc < 5) {
+		return -1;
+	}
+
+	/* load xdp program? */
+	if (!strncmp(argv[1], "load", 4)) {
+		return load_xdp(argv[2], argv[3], argv[4]);
+	}
+
+	/* no valid command line argument */
 	return -1;
 }
