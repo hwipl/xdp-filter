@@ -139,7 +139,7 @@ int skip_vlan_headers(void *data, void *data_end, __be16 *type, void **next) {
 	struct vlan_hdr *vlan;
 	__u16 vlan_id;
 	long *value;
-	int i = 0;
+	int i;
 
 	/* check packet length for verifier */
 	if (data + sizeof(struct ethhdr) + sizeof(struct vlan_hdr) > data_end) {
@@ -155,7 +155,7 @@ int skip_vlan_headers(void *data, void *data_end, __be16 *type, void **next) {
 	vlan = data + sizeof(struct ethhdr);
 
 	/* skip through vlan headers */
-	while (i < MAX_VLAN_HEADERS) {
+	for (i = 1; i < MAX_VLAN_HEADERS; i++) {
 		if (!is_vlan_header(vlan->h_vlan_encapsulated_proto)) {
 			break;
 		}
