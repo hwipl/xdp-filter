@@ -17,7 +17,7 @@
 /* bpf object */
 struct bpf_object *obj;
 
-/* load xdp section inf file and attach it to device */
+/* load xdp section in file and attach it to device */
 int load_xdp(const char *file, const char *section, const char *device) {
 	/* load bpf file */
 	struct bpf_prog_load_attr prog_load_attr = {
