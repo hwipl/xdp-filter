@@ -403,14 +403,14 @@ function test_ethernet_drop {
 	run_ping_test $IPV4_HOST2 0
 
 	# start ethernet filtering with invalid mac
-	run_xdp_host2 drop-eth-src-macs $VETH_HOST2 00:00:00:00:00:00
+	run_xdp_host2 drop-eth-src $VETH_HOST2 00:00:00:00:00:00
 
 	# ping host 2 from host 1 (should work)
 	echo -n "  test pass: "
 	run_ping_test $IPV4_HOST2 0
 
 	# start ethernet filtering with valid mac
-	run_xdp_host2 drop-eth-src-macs $VETH_HOST2 $MAC_HOST1
+	run_xdp_host2 drop-eth-src $VETH_HOST2 $MAC_HOST1
 
 	# ping host 2 from host 1 (should not work)
 	echo -n "  test drop: "
@@ -431,14 +431,14 @@ function test_ethernet_pass {
 	run_ping_test $IPV4_HOST2 0
 
 	# start ethernet filtering with invalid mac
-	run_xdp_host2 pass-eth-src-macs $VETH_HOST2 00:00:00:00:00:00
+	run_xdp_host2 pass-eth-src $VETH_HOST2 00:00:00:00:00:00
 
 	# ping host 2 from host 1 (should not work)
 	echo -n "  drop test: "
 	run_ping_test $IPV4_HOST2 1
 
 	# start ethernet filtering with valid mac
-	run_xdp_host2 pass-eth-src-macs $VETH_HOST2 $MAC_HOST1
+	run_xdp_host2 pass-eth-src $VETH_HOST2 $MAC_HOST1
 
 	# ping host 2 from host 1 (should work)
 	echo -n "  pass test: "

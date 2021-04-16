@@ -387,12 +387,12 @@ int main(int argc, char **argv) {
 	}
 
 	/* drop ethernet source MACs? */
-	if (!strncmp(argv[1], "drop-eth-src-macs", 17)) {
+	if (!strncmp(argv[1], "drop-eth-src", 12)) {
 		return filter_ethernet(1, argv[2], argc - 3, argv + 3);
 	}
 
 	/* pass ethernet source MACs? */
-	if (!strncmp(argv[1], "pass-eth-src-macs", 17)) {
+	if (!strncmp(argv[1], "pass-eth-src", 12)) {
 		return filter_ethernet(0, argv[2], argc - 3, argv + 3);
 	}
 
