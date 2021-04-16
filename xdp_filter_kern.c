@@ -175,19 +175,25 @@ int skip_vlan_headers(void *data, void *data_end, __be16 *type, void **next) {
 
 /* helper for getting the layer 3 header in the ethernet packet in data */
 void *get_l3_header(void *data, void *data_end, __u16 type) {
-	struct ethhdr *eth = data;
+	__be16 next_type;
+	void *next;
 
 	/* check packet length for verifier */
 	if (data + sizeof(struct ethhdr) > data_end) {
 		return 0;
 	}
 
-	/* check l3 type */
-	if (htons(eth->h_proto) != type) {
+	/* skip vlan headers */
+	if (skip_vlan_headers(data, data_end, &next_type, &next)) {
 		return 0;
 	}
 
-	return data + sizeof(struct ethhdr);
+	/* check l3 type */
+	if (htons(next_type) != type) {
+		return 0;
+	}
+
+	return next;
 }
 
 /* helper for getting the layer 4 header in the ethernet packet in data */
