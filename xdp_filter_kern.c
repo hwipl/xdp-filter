@@ -198,22 +198,28 @@ void *get_l3_header(void *data, void *data_end, __u16 type) {
 
 /* helper for getting the layer 4 header in the ethernet packet in data */
 void *get_l4_header(void *data, void *data_end, __u8 type) {
-	struct ethhdr *eth = data;
 	struct ipv6hdr *ipv6;
 	struct iphdr *ipv4;
+	__be16 next_type;
+	void *next;
 
 	/* check packet length for verifier */
 	if (data + sizeof(struct ethhdr) > data_end) {
 		return 0;
 	}
 
+	/* skip vlan headers */
+	if (skip_vlan_headers(data, data_end, &next_type, &next)) {
+		return 0;
+	}
+
 	/* check ip and get udp header */
-	switch (htons(eth->h_proto)) {
+	switch (htons(next_type)) {
 	case ETH_P_IP:
-		ipv4 = data + sizeof(struct ethhdr);
+		ipv4 = next;
 
 		/* check packet length for verifier */
-		if ((void *) ipv4 + sizeof(struct iphdr) > data_end) {
+		if (next + sizeof(struct iphdr) > data_end) {
 			return 0;
 		}
 
@@ -224,10 +230,10 @@ void *get_l4_header(void *data, void *data_end, __u8 type) {
 
 		return ((void *) ipv4) + ipv4->ihl * 4;
 	case ETH_P_IPV6:
-		ipv6 = data + sizeof(struct ethhdr);
+		ipv6 = next;
 
 		/* check packet length for verifier */
-		if ((void *) ipv6 + sizeof(struct ipv6hdr) > data_end) {
+		if (next + sizeof(struct ipv6hdr) > data_end) {
 			return 0;
 		}
 
