@@ -607,6 +607,10 @@ function test_ipv6_drop {
 	# ping host 2 from host 1 (should work)
 	echo -n "  setup: "
 	run_ping_test $IPV6_HOST2 0
+	echo -n "  setup vlan: "
+	run_ping_test $IPV6_HOST2_VLAN 0
+	echo -n "  setup vlan stacked: "
+	run_ping_test $IPV6_HOST2_VLAN_STACKED 0
 
 	# start ipv6 filtering with invalid ip address
 	run_xdp_host2 drop-ipv6-src $VETH_HOST2 ::
@@ -614,13 +618,22 @@ function test_ipv6_drop {
 	# ping host 2 from host 1 (should work)
 	echo -n "  test pass: "
 	run_ping_test $IPV6_HOST2 0
+	echo -n "  test pass vlan: "
+	run_ping_test $IPV6_HOST2_VLAN 0
+	echo -n "  test pass vlan stacked: "
+	run_ping_test $IPV6_HOST2_VLAN_STACKED 0
 
 	# start ipv6 filtering with valid ip address
-	run_xdp_host2 drop-ipv6-src $VETH_HOST2 ${IPV6_HOST1%/*}
+	run_xdp_host2 drop-ipv6-src $VETH_HOST2 ${IPV6_HOST1%/*} \
+		${IPV6_HOST1_VLAN%/*} ${IPV6_HOST1_VLAN_STACKED%/*}
 
 	# ping host 2 from host 1 (should not work)
 	echo -n "  test drop: "
 	run_ping_test $IPV6_HOST2 1
+	echo -n "  test drop vlan: "
+	run_ping_test $IPV6_HOST2_VLAN 1
+	echo -n "  test drop vlan stacked: "
+	run_ping_test $IPV6_HOST2_VLAN_STACKED 1
 
 	# cleanup
 	cleanup_test
