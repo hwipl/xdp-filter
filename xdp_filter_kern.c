@@ -141,11 +141,6 @@ int skip_vlan_headers(void *data, void *data_end, __be16 *type, void **next) {
 	long *value;
 	int i;
 
-	/* check packet length for verifier */
-	if (data + sizeof(struct ethhdr) + sizeof(struct vlan_hdr) > data_end) {
-		return -1;
-	}
-
 	/* check vlan */
 	if (!is_vlan_header(eth->h_proto)) {
 		*type = eth->h_proto;
@@ -153,6 +148,11 @@ int skip_vlan_headers(void *data, void *data_end, __be16 *type, void **next) {
 		return 0;
 	}
 	vlan = data + sizeof(struct ethhdr);
+
+	/* check packet length for verifier */
+	if ((void *) (vlan + 1) > data_end) {
+		return -1;
+	}
 
 	/* skip through vlan headers */
 	for (i = 1; i < MAX_VLAN_HEADERS; i++) {
@@ -162,7 +162,7 @@ int skip_vlan_headers(void *data, void *data_end, __be16 *type, void **next) {
 		vlan = vlan + 1;
 
 		/* check packet length for verifier */
-		if ((void *) vlan > data_end) {
+		if ((void *) (vlan + 1) > data_end) {
 			return -1;
 		}
 	}
