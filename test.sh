@@ -440,10 +440,12 @@ function test_ethernet_pass {
 	test_ethernet pass
 }
 
-# test vlan filtering (drop specified vlan ids)
-function test_vlan_drop {
+# test vlan filtering, $1 specifies "drop" or "pass"
+function test_vlan {
+	# get expected test result and its string representation
+	set_drop_or_pass "$1"
+
 	# prepare
-	echo "VLAN Drop VLAN IDs:"
 	prepare_test
 
 	# ping host 2 from host 1 (should work)
@@ -453,59 +455,36 @@ function test_vlan_drop {
 	run_ping_test $IPV4_HOST2_VLAN_STACKED 0
 
 	# start vlan filtering with invalid vlan ids
-	run_xdp_host2 drop-vlan $VETH_HOST2 $VLAN_ID_INVALID
+	run_xdp_host2 "$1-vlan" $VETH_HOST2 $VLAN_ID_INVALID
 
-	# ping host 2 from host 1 (should work)
-	echo -n "  test pass: "
-	run_ping_test $IPV4_HOST2_VLAN 0
-	echo -n "  stacked test pass: "
-	run_ping_test $IPV4_HOST2_VLAN_STACKED 0
+	# ping host 2 from host 1 and check expected result
+	echo -n "  test ${TEST_STRING[0]}: "
+	run_ping_test $IPV4_HOST2_VLAN "${TEST_RESULT[0]}"
+	echo -n "  stacked test ${TEST_STRING[0]}: "
+	run_ping_test $IPV4_HOST2_VLAN_STACKED "${TEST_RESULT[0]}"
 
 	# start vlan filtering with valid vlan ids
-	run_xdp_host2 drop-vlan $VETH_HOST2 $VLAN_ID $VLAN_STACKED_ID
+	run_xdp_host2 "$1-vlan" $VETH_HOST2 $VLAN_ID $VLAN_STACKED_ID
 
-	# ping host 2 from host 1 (should not work)
-	echo -n "  test drop: "
-	run_ping_test $IPV4_HOST2_VLAN 1
-	echo -n "  stacked test drop: "
-	run_ping_test $IPV4_HOST2_VLAN_STACKED 1
+	# ping host 2 from host 1 and check expected result
+	echo -n "  test ${TEST_STRING[1]}: "
+	run_ping_test $IPV4_HOST2_VLAN "${TEST_RESULT[1]}"
+	echo -n "  stacked test ${TEST_STRING[1]}: "
+	run_ping_test $IPV4_HOST2_VLAN_STACKED "${TEST_RESULT[1]}"
 
 	# cleanup
 	cleanup_test
 }
+# test vlan filtering (drop specified vlan ids)
+function test_vlan_drop {
+	echo "VLAN Drop VLAN IDs:"
+	test_vlan drop
+}
 
 # test vlan filtering (pass specified vlan ids)
 function test_vlan_pass {
-	# prepare
 	echo "VLAN Pass VLAN IDs:"
-	prepare_test
-
-	# ping host 2 from host 1 (should work)
-	echo -n "  setup: "
-	run_ping_test $IPV4_HOST2_VLAN 0
-	echo -n "  stacked setup: "
-	run_ping_test $IPV4_HOST2_VLAN_STACKED 0
-
-	# start vlan filtering with invalid vlan ids
-	run_xdp_host2 pass-vlan $VETH_HOST2 $VLAN_ID_INVALID
-
-	# ping host 2 from host 1 (should not work)
-	echo -n "  test drop: "
-	run_ping_test $IPV4_HOST2_VLAN 1
-	echo -n "  stacked test drop: "
-	run_ping_test $IPV4_HOST2_VLAN_STACKED 1
-
-	# start vlan filtering with valid vlan ids
-	run_xdp_host2 pass-vlan $VETH_HOST2 $VLAN_ID $VLAN_STACKED_ID
-
-	# ping host 2 from host 1 (should work)
-	echo -n "  test pass: "
-	run_ping_test $IPV4_HOST2_VLAN 0
-	echo -n "  stacked test pass: "
-	run_ping_test $IPV4_HOST2_VLAN_STACKED 0
-
-	# cleanup
-	cleanup_test
+	test_vlan pass
 }
 
 # test ipv4 filtering (drop specified ipv4 source addresses)
