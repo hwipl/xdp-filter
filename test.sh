@@ -387,10 +387,23 @@ function run_l4_test {
 	fi
 }
 
-# test ethernet filtering (drop specified source macs)
-function test_ethernet_drop {
+# drop or pass? set expected test result and its string representation
+function set_drop_or_pass {
+	local drop=$1
+	TEST_RESULT=(1 0)
+	TEST_STRING=("drop" "pass")
+	if [[ $drop == "drop" ]]; then
+		TEST_RESULT=(0 1)
+		TEST_STRING=("pass" "drop")
+	fi
+}
+
+# test ethernet filtering, $1 specifies "drop" or "pass" test
+function test_ethernet {
+	# get expected test result and its string representation
+	set_drop_or_pass "$1"
+
 	# prepare
-	echo "Ethernet Drop Source MACs:"
 	prepare_test
 
 	# ping host 2 from host 1 (should work)
@@ -398,49 +411,33 @@ function test_ethernet_drop {
 	run_ping_test $IPV4_HOST2 0
 
 	# start ethernet filtering with invalid mac
-	run_xdp_host2 drop-eth-src $VETH_HOST2 00:00:00:00:00:00
+	run_xdp_host2 "$1-eth-src" $VETH_HOST2 00:00:00:00:00:00
 
-	# ping host 2 from host 1 (should work)
-	echo -n "  test pass: "
-	run_ping_test $IPV4_HOST2 0
+	# ping host 2 from host 1 and check expected result
+	echo -n "  test ${TEST_STRING[0]}: "
+	run_ping_test $IPV4_HOST2 "${TEST_RESULT[0]}"
 
 	# start ethernet filtering with valid mac
-	run_xdp_host2 drop-eth-src $VETH_HOST2 $MAC_HOST1
+	run_xdp_host2 "$1-eth-src" $VETH_HOST2 $MAC_HOST1
 
-	# ping host 2 from host 1 (should not work)
-	echo -n "  test drop: "
-	run_ping_test $IPV4_HOST2 1
+	# ping host 2 from host 1 and check expected result
+	echo -n "  test ${TEST_STRING[1]}: "
+	run_ping_test $IPV4_HOST2 "${TEST_RESULT[1]}"
 
 	# cleanup
 	cleanup_test
 }
 
+# test ethernet filtering (drop specified source macs)
+function test_ethernet_drop {
+	echo "Ethernet Drop Source MACs:"
+	test_ethernet drop
+}
+
 # test ethernet filtering (pass specified source macs)
 function test_ethernet_pass {
-	# prepare
 	echo "Ethernet Pass Source MACs:"
-	prepare_test
-
-	# ping host 2 from host 1 (should work)
-	echo -n "  setup: "
-	run_ping_test $IPV4_HOST2 0
-
-	# start ethernet filtering with invalid mac
-	run_xdp_host2 pass-eth-src $VETH_HOST2 00:00:00:00:00:00
-
-	# ping host 2 from host 1 (should not work)
-	echo -n "  drop test: "
-	run_ping_test $IPV4_HOST2 1
-
-	# start ethernet filtering with valid mac
-	run_xdp_host2 pass-eth-src $VETH_HOST2 $MAC_HOST1
-
-	# ping host 2 from host 1 (should work)
-	echo -n "  pass test: "
-	run_ping_test $IPV4_HOST2 0
-
-	# cleanup
-	cleanup_test
+	test_ethernet pass
 }
 
 # test vlan filtering (drop specified vlan ids)
