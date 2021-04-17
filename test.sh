@@ -389,10 +389,9 @@ function run_l4_test {
 
 # drop or pass? set expected test result and its string representation
 function set_drop_or_pass {
-	local drop=$1
 	TEST_RESULT=(1 0)
 	TEST_STRING=("drop" "pass")
-	if [[ $drop == "drop" ]]; then
+	if [[ $1 == "drop" ]]; then
 		TEST_RESULT=(0 1)
 		TEST_STRING=("pass" "drop")
 	fi
