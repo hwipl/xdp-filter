@@ -541,10 +541,12 @@ function test_ipv4_pass {
 	test_ipv4 pass
 }
 
-# test ipv6 filtering (drop specified ipv6 source addresses)
-function test_ipv6_drop {
+# test ipv6 filtering, $1 specifies "drop" or "pass" test
+function test_ipv6 {
+	# get expected test result and its string representation
+	set_drop_or_pass "$1"
+
 	# prepare
-	echo "IPv6 Drop Source IP Addresses:"
 	prepare_test
 
 	# ping host 2 from host 1 (should work)
@@ -556,71 +558,41 @@ function test_ipv6_drop {
 	run_ping_test $IPV6_HOST2_VLAN_STACKED 0
 
 	# start ipv6 filtering with invalid ip address
-	run_xdp_host2 drop-ipv6-src $VETH_HOST2 ::
+	run_xdp_host2 "$1-ipv6-src" $VETH_HOST2 ::
 
-	# ping host 2 from host 1 (should work)
-	echo -n "  test pass: "
-	run_ping_test $IPV6_HOST2 0
-	echo -n "  test pass vlan: "
-	run_ping_test $IPV6_HOST2_VLAN 0
-	echo -n "  test pass vlan stacked: "
-	run_ping_test $IPV6_HOST2_VLAN_STACKED 0
+	# ping host 2 from host 1 and check expected result
+	echo -n "  test ${TEST_STRING[0]}: "
+	run_ping_test $IPV6_HOST2 "${TEST_RESULT[0]}"
+	echo -n "  test ${TEST_STRING[0]} vlan: "
+	run_ping_test $IPV6_HOST2_VLAN "${TEST_RESULT[0]}"
+	echo -n "  test ${TEST_STRING[0]} vlan stacked: "
+	run_ping_test $IPV6_HOST2_VLAN_STACKED "${TEST_RESULT[0]}"
 
 	# start ipv6 filtering with valid ip address
-	run_xdp_host2 drop-ipv6-src $VETH_HOST2 ${IPV6_HOST1%/*} \
+	run_xdp_host2 "$1-ipv6-src" $VETH_HOST2 ${IPV6_HOST1%/*} \
 		${IPV6_HOST1_VLAN%/*} ${IPV6_HOST1_VLAN_STACKED%/*}
 
-	# ping host 2 from host 1 (should not work)
-	echo -n "  test drop: "
-	run_ping_test $IPV6_HOST2 1
-	echo -n "  test drop vlan: "
-	run_ping_test $IPV6_HOST2_VLAN 1
-	echo -n "  test drop vlan stacked: "
-	run_ping_test $IPV6_HOST2_VLAN_STACKED 1
+	# ping host 2 from host 1 and check expected result
+	echo -n "  test ${TEST_STRING[1]}: "
+	run_ping_test $IPV6_HOST2 "${TEST_RESULT[1]}"
+	echo -n "  test ${TEST_STRING[1]} vlan: "
+	run_ping_test $IPV6_HOST2_VLAN "${TEST_RESULT[1]}"
+	echo -n "  test ${TEST_STRING[1]} vlan stacked: "
+	run_ping_test $IPV6_HOST2_VLAN_STACKED "${TEST_RESULT[1]}"
 
 	# cleanup
 	cleanup_test
 }
+# test ipv6 filtering (drop specified ipv6 source addresses)
+function test_ipv6_drop {
+	echo "IPv6 Drop Source IP Addresses:"
+	test_ipv6 drop
+}
 
 # test ipv6 filtering (pass specified ipv6 source addresses)
 function test_ipv6_pass {
-	# prepare
 	echo "IPv6 Pass Source IP Addresses:"
-	prepare_test
-
-	# ping host 2 from host 1 (should work)
-	echo -n "  setup: "
-	run_ping_test $IPV6_HOST2 0
-	echo -n "  setup vlan: "
-	run_ping_test $IPV6_HOST2_VLAN 0
-	echo -n "  setup vlan stacked: "
-	run_ping_test $IPV6_HOST2_VLAN_STACKED 0
-
-	# start ipv6 filtering with invalid ip address
-	run_xdp_host2 pass-ipv6-src $VETH_HOST2 ::
-
-	# ping host 2 from host 1 (should not work)
-	echo -n "  test drop: "
-	run_ping_test $IPV6_HOST2 1
-	echo -n "  test drop vlan: "
-	run_ping_test $IPV6_HOST2_VLAN 1
-	echo -n "  test drop vlan stacked: "
-	run_ping_test $IPV6_HOST2_VLAN_STACKED 1
-
-	# start ipv6 filtering with valid ip address
-	run_xdp_host2 pass-ipv6-src $VETH_HOST2 ${IPV6_HOST1%/*} \
-		${IPV6_HOST1_VLAN%/*} ${IPV6_HOST1_VLAN_STACKED%/*}
-
-	# ping host 2 from host 1 (should work)
-	echo -n "  test pass: "
-	run_ping_test $IPV6_HOST2 0
-	echo -n "  test pass vlan: "
-	run_ping_test $IPV6_HOST2_VLAN 0
-	echo -n "  test pass vlan stacked: "
-	run_ping_test $IPV6_HOST2_VLAN_STACKED 0
-
-	# cleanup
-	cleanup_test
+	test_ipv6 pass
 }
 
 # test udp filtering (drop specified udp source ports)
