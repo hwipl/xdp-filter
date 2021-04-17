@@ -49,24 +49,7 @@ IPV6_HOST2_VLAN_STACKED="fd00:200::2/64"
 
 # tcp/udp ports
 LISTEN_PORT=1999
-SOURCE_PORT1=2000
-SOURCE_PORT2=2001
-SOURCE_PORT3=2002
-SOURCE_PORT4=2003
-SOURCE_PORT5=2004
-SOURCE_PORT6=2005
-SOURCE_PORT7=2006
-SOURCE_PORT8=2007
-SOURCE_PORT9=2008
-SOURCE_PORT10=2009
-SOURCE_PORT11=2010
-SOURCE_PORT12=2011
-SOURCE_PORT13=2012
-SOURCE_PORT14=2013
-SOURCE_PORT15=2014
-SOURCE_PORT16=2015
-SOURCE_PORT17=2016
-SOURCE_PORT18=2017
+mapfile -t SOURCE_PORTS < <(seq 2000 2017)
 
 # invalid port (not equal to any other id above) for testing
 SOURCE_PORT_INVALID=1
@@ -700,56 +683,51 @@ function test_udp_drop {
 
 	# test connection to host 2 from host 1 (should work)
 	echo -n "  ipv4 setup: "
-	run_l4_test ipv4 udp $SOURCE_PORT1 $IPV4_HOST2 0
+	run_l4_test ipv4 udp "${SOURCE_PORTS[0]}" $IPV4_HOST2 0
 	echo -n "  ipv4 setup vlan: "
-	run_l4_test ipv4 udp $SOURCE_PORT2 $IPV4_HOST2_VLAN 0
+	run_l4_test ipv4 udp "${SOURCE_PORTS[1]}" $IPV4_HOST2_VLAN 0
 	echo -n "  ipv4 setup vlan stacked: "
-	run_l4_test ipv4 udp $SOURCE_PORT3 $IPV4_HOST2_VLAN_STACKED 0
+	run_l4_test ipv4 udp "${SOURCE_PORTS[2]}" $IPV4_HOST2_VLAN_STACKED 0
 	echo -n "  ipv6 setup: "
-	run_l4_test ipv6 udp $SOURCE_PORT4 $IPV6_HOST2 0
+	run_l4_test ipv6 udp "${SOURCE_PORTS[3]}" $IPV6_HOST2 0
 	echo -n "  ipv6 setup vlan: "
-	run_l4_test ipv6 udp $SOURCE_PORT5 $IPV6_HOST2_VLAN 0
+	run_l4_test ipv6 udp "${SOURCE_PORTS[4]}" $IPV6_HOST2_VLAN 0
 	echo -n "  ipv6 setup vlan stacked: "
-	run_l4_test ipv6 udp $SOURCE_PORT6 $IPV6_HOST2_VLAN_STACKED 0
+	run_l4_test ipv6 udp "${SOURCE_PORTS[5]}" $IPV6_HOST2_VLAN_STACKED 0
 
 	# start udp filtering with invalid port
 	run_xdp_host2 drop-udp-src $VETH_HOST2 $SOURCE_PORT_INVALID
 
 	# test connection to host 2 from host 1 (should work)
 	echo -n "  ipv4 test pass: "
-	run_l4_test ipv4 udp $SOURCE_PORT7 $IPV4_HOST2 0
+	run_l4_test ipv4 udp "${SOURCE_PORTS[6]}" $IPV4_HOST2 0
 	echo -n "  ipv4 test pass vlan: "
-	run_l4_test ipv4 udp $SOURCE_PORT8 $IPV4_HOST2_VLAN 0
+	run_l4_test ipv4 udp "${SOURCE_PORTS[7]}" $IPV4_HOST2_VLAN 0
 	echo -n "  ipv4 test pass vlan stacked: "
-	run_l4_test ipv4 udp $SOURCE_PORT9 $IPV4_HOST2_VLAN_STACKED 0
+	run_l4_test ipv4 udp "${SOURCE_PORTS[8]}" $IPV4_HOST2_VLAN_STACKED 0
 	echo -n "  ipv6 test pass: "
-	run_l4_test ipv6 udp $SOURCE_PORT10 $IPV6_HOST2 0
+	run_l4_test ipv6 udp "${SOURCE_PORTS[9]}" $IPV6_HOST2 0
 	echo -n "  ipv6 test pass vlan: "
-	run_l4_test ipv6 udp $SOURCE_PORT11 $IPV6_HOST2_VLAN 0
+	run_l4_test ipv6 udp "${SOURCE_PORTS[10]}" $IPV6_HOST2_VLAN 0
 	echo -n "  ipv6 test pass vlan stacked: "
-	run_l4_test ipv6 udp $SOURCE_PORT12 $IPV6_HOST2_VLAN_STACKED 0
+	run_l4_test ipv6 udp "${SOURCE_PORTS[11]}" $IPV6_HOST2_VLAN_STACKED 0
 
 	# start udp filtering with valid ports
-	run_xdp_host2 drop-udp-src $VETH_HOST2 \
-		$SOURCE_PORT1 $SOURCE_PORT2 $SOURCE_PORT3 $SOURCE_PORT4 \
-		$SOURCE_PORT5 $SOURCE_PORT6 $SOURCE_PORT8 $SOURCE_PORT9 \
-		$SOURCE_PORT10 $SOURCE_PORT11 $SOURCE_PORT12 $SOURCE_PORT13 \
-		$SOURCE_PORT14 $SOURCE_PORT15 $SOURCE_PORT16 $SOURCE_PORT17 \
-		$SOURCE_PORT18
+	run_xdp_host2 drop-udp-src $VETH_HOST2 "${SOURCE_PORTS[@]}"
 
 	# test connection to host 2 from host 1 (should not work)
 	echo -n "  ipv4 test drop: "
-	run_l4_test ipv4 udp $SOURCE_PORT13 $IPV4_HOST2 1
+	run_l4_test ipv4 udp "${SOURCE_PORTS[12]}" $IPV4_HOST2 1
 	echo -n "  ipv4 test drop vlan: "
-	run_l4_test ipv4 udp $SOURCE_PORT14 $IPV4_HOST2_VLAN 1
+	run_l4_test ipv4 udp "${SOURCE_PORTS[13]}" $IPV4_HOST2_VLAN 1
 	echo -n "  ipv4 test drop vlan stacked: "
-	run_l4_test ipv4 udp $SOURCE_PORT15 $IPV4_HOST2_VLAN_STACKED 1
+	run_l4_test ipv4 udp "${SOURCE_PORTS[14]}" $IPV4_HOST2_VLAN_STACKED 1
 	echo -n "  ipv6 test drop: "
-	run_l4_test ipv6 udp $SOURCE_PORT16 $IPV6_HOST2 1
+	run_l4_test ipv6 udp "${SOURCE_PORTS[15]}" $IPV6_HOST2 1
 	echo -n "  ipv6 test drop vlan: "
-	run_l4_test ipv6 udp $SOURCE_PORT17 $IPV6_HOST2_VLAN 1
+	run_l4_test ipv6 udp "${SOURCE_PORTS[16]}" $IPV6_HOST2_VLAN 1
 	echo -n "  ipv6 test drop vlan stacked: "
-	run_l4_test ipv6 udp $SOURCE_PORT18 $IPV6_HOST2_VLAN_STACKED 1
+	run_l4_test ipv6 udp "${SOURCE_PORTS[17]}" $IPV6_HOST2_VLAN_STACKED 1
 
 	# cleanup
 	cleanup_test
@@ -763,56 +741,51 @@ function test_udp_pass {
 
 	# test connection to host 2 from host 1 (should work)
 	echo -n "  ipv4 setup: "
-	run_l4_test ipv4 udp $SOURCE_PORT1 $IPV4_HOST2 0
+	run_l4_test ipv4 udp "${SOURCE_PORTS[0]}" $IPV4_HOST2 0
 	echo -n "  ipv4 setup vlan: "
-	run_l4_test ipv4 udp $SOURCE_PORT2 $IPV4_HOST2_VLAN 0
+	run_l4_test ipv4 udp "${SOURCE_PORTS[1]}" $IPV4_HOST2_VLAN 0
 	echo -n "  ipv4 setup vlan stacked: "
-	run_l4_test ipv4 udp $SOURCE_PORT3 $IPV4_HOST2_VLAN_STACKED 0
+	run_l4_test ipv4 udp "${SOURCE_PORTS[2]}" $IPV4_HOST2_VLAN_STACKED 0
 	echo -n "  ipv6 setup: "
-	run_l4_test ipv6 udp $SOURCE_PORT4 $IPV6_HOST2 0
+	run_l4_test ipv6 udp "${SOURCE_PORTS[3]}" $IPV6_HOST2 0
 	echo -n "  ipv6 setup vlan: "
-	run_l4_test ipv6 udp $SOURCE_PORT5 $IPV6_HOST2_VLAN 0
+	run_l4_test ipv6 udp "${SOURCE_PORTS[4]}" $IPV6_HOST2_VLAN 0
 	echo -n "  ipv6 setup vlan stacked: "
-	run_l4_test ipv6 udp $SOURCE_PORT6 $IPV6_HOST2_VLAN_STACKED 0
+	run_l4_test ipv6 udp "${SOURCE_PORTS[5]}" $IPV6_HOST2_VLAN_STACKED 0
 
 	# start udp filtering with invalid port
 	run_xdp_host2 pass-udp-src $VETH_HOST2 $SOURCE_PORT_INVALID
 
 	# test connection to host 2 from host 1 (should not work)
 	echo -n "  ipv4 test drop: "
-	run_l4_test ipv4 udp $SOURCE_PORT7 $IPV4_HOST2 1
+	run_l4_test ipv4 udp "${SOURCE_PORTS[6]}" $IPV4_HOST2 1
 	echo -n "  ipv4 test drop vlan: "
-	run_l4_test ipv4 udp $SOURCE_PORT8 $IPV4_HOST2_VLAN 1
+	run_l4_test ipv4 udp "${SOURCE_PORTS[7]}" $IPV4_HOST2_VLAN 1
 	echo -n "  ipv4 test drop vlan stacked: "
-	run_l4_test ipv4 udp $SOURCE_PORT9 $IPV4_HOST2_VLAN_STACKED 1
+	run_l4_test ipv4 udp "${SOURCE_PORTS[8]}" $IPV4_HOST2_VLAN_STACKED 1
 	echo -n "  ipv6 test drop: "
-	run_l4_test ipv6 udp $SOURCE_PORT10 $IPV6_HOST2 1
+	run_l4_test ipv6 udp "${SOURCE_PORTS[9]}" $IPV6_HOST2 1
 	echo -n "  ipv6 test drop vlan: "
-	run_l4_test ipv6 udp $SOURCE_PORT11 $IPV6_HOST2_VLAN 1
+	run_l4_test ipv6 udp "${SOURCE_PORTS[10]}" $IPV6_HOST2_VLAN 1
 	echo -n "  ipv6 test drop vlan stacked: "
-	run_l4_test ipv6 udp $SOURCE_PORT12 $IPV6_HOST2_VLAN_STACKED 1
+	run_l4_test ipv6 udp "${SOURCE_PORTS[11]}" $IPV6_HOST2_VLAN_STACKED 1
 
 	# start udp filtering with valid ports
-	run_xdp_host2 pass-udp-src $VETH_HOST2 \
-		$SOURCE_PORT1 $SOURCE_PORT2 $SOURCE_PORT3 $SOURCE_PORT4 \
-		$SOURCE_PORT5 $SOURCE_PORT6 $SOURCE_PORT8 $SOURCE_PORT9 \
-		$SOURCE_PORT10 $SOURCE_PORT11 $SOURCE_PORT12 $SOURCE_PORT13 \
-		$SOURCE_PORT14 $SOURCE_PORT15 $SOURCE_PORT16 $SOURCE_PORT17 \
-		$SOURCE_PORT18
+	run_xdp_host2 pass-udp-src $VETH_HOST2 "${SOURCE_PORTS[@]}"
 
 	# test connection to host 2 from host 1 (should work)
 	echo -n "  ipv4 test pass: "
-	run_l4_test ipv4 udp $SOURCE_PORT13 $IPV4_HOST2 0
+	run_l4_test ipv4 udp "${SOURCE_PORTS[12]}" $IPV4_HOST2 0
 	echo -n "  ipv4 test pass vlan: "
-	run_l4_test ipv4 udp $SOURCE_PORT14 $IPV4_HOST2_VLAN 0
+	run_l4_test ipv4 udp "${SOURCE_PORTS[13]}" $IPV4_HOST2_VLAN 0
 	echo -n "  ipv4 test pass vlan stacked: "
-	run_l4_test ipv4 udp $SOURCE_PORT15 $IPV4_HOST2_VLAN_STACKED 0
+	run_l4_test ipv4 udp "${SOURCE_PORTS[14]}" $IPV4_HOST2_VLAN_STACKED 0
 	echo -n "  ipv6 test pass: "
-	run_l4_test ipv6 udp $SOURCE_PORT16 $IPV6_HOST2 0
+	run_l4_test ipv6 udp "${SOURCE_PORTS[15]}" $IPV6_HOST2 0
 	echo -n "  ipv6 test pass vlan: "
-	run_l4_test ipv6 udp $SOURCE_PORT17 $IPV6_HOST2_VLAN 0
+	run_l4_test ipv6 udp "${SOURCE_PORTS[16]}" $IPV6_HOST2_VLAN 0
 	echo -n "  ipv6 test pass vlan stacked: "
-	run_l4_test ipv6 udp $SOURCE_PORT18 $IPV6_HOST2_VLAN_STACKED 0
+	run_l4_test ipv6 udp "${SOURCE_PORTS[17]}" $IPV6_HOST2_VLAN_STACKED 0
 
 	# cleanup
 	cleanup_test
@@ -826,56 +799,51 @@ function test_tcp_drop {
 
 	# test connection to host 2 from host 1 (should work)
 	echo -n "  ipv4 setup: "
-	run_l4_test ipv4 tcp $SOURCE_PORT1 $IPV4_HOST2 0
+	run_l4_test ipv4 tcp "${SOURCE_PORTS[0]}" $IPV4_HOST2 0
 	echo -n "  ipv4 setup vlan: "
-	run_l4_test ipv4 tcp $SOURCE_PORT2 $IPV4_HOST2_VLAN 0
+	run_l4_test ipv4 tcp "${SOURCE_PORTS[1]}" $IPV4_HOST2_VLAN 0
 	echo -n "  ipv4 setup vlan stacked: "
-	run_l4_test ipv4 tcp $SOURCE_PORT3 $IPV4_HOST2_VLAN_STACKED 0
+	run_l4_test ipv4 tcp "${SOURCE_PORTS[2]}" $IPV4_HOST2_VLAN_STACKED 0
 	echo -n "  ipv6 setup: "
-	run_l4_test ipv6 tcp $SOURCE_PORT4 $IPV6_HOST2 0
+	run_l4_test ipv6 tcp "${SOURCE_PORTS[3]}" $IPV6_HOST2 0
 	echo -n "  ipv6 setup vlan: "
-	run_l4_test ipv6 tcp $SOURCE_PORT5 $IPV6_HOST2_VLAN 0
+	run_l4_test ipv6 tcp "${SOURCE_PORTS[4]}" $IPV6_HOST2_VLAN 0
 	echo -n "  ipv6 setup vlan stacked: "
-	run_l4_test ipv6 tcp $SOURCE_PORT6 $IPV6_HOST2_VLAN_STACKED 0
+	run_l4_test ipv6 tcp "${SOURCE_PORTS[5]}" $IPV6_HOST2_VLAN_STACKED 0
 
 	# start tcp filtering with invalid port
 	run_xdp_host2 drop-tcp-src $VETH_HOST2 $SOURCE_PORT_INVALID
 
 	# test connection to host 2 from host 1 (should work)
 	echo -n "  ipv4 test pass: "
-	run_l4_test ipv4 tcp $SOURCE_PORT7 $IPV4_HOST2 0
+	run_l4_test ipv4 tcp "${SOURCE_PORTS[6]}" $IPV4_HOST2 0
 	echo -n "  ipv4 test pass vlan: "
-	run_l4_test ipv4 tcp $SOURCE_PORT8 $IPV4_HOST2_VLAN 0
+	run_l4_test ipv4 tcp "${SOURCE_PORTS[7]}" $IPV4_HOST2_VLAN 0
 	echo -n "  ipv4 test pass vlan stacked: "
-	run_l4_test ipv4 tcp $SOURCE_PORT9 $IPV4_HOST2_VLAN_STACKED 0
+	run_l4_test ipv4 tcp "${SOURCE_PORTS[8]}" $IPV4_HOST2_VLAN_STACKED 0
 	echo -n "  ipv6 test pass: "
-	run_l4_test ipv6 tcp $SOURCE_PORT10 $IPV6_HOST2 0
+	run_l4_test ipv6 tcp "${SOURCE_PORTS[9]}" $IPV6_HOST2 0
 	echo -n "  ipv6 test pass vlan: "
-	run_l4_test ipv6 tcp $SOURCE_PORT11 $IPV6_HOST2_VLAN 0
+	run_l4_test ipv6 tcp "${SOURCE_PORTS[10]}" $IPV6_HOST2_VLAN 0
 	echo -n "  ipv6 test pass vlan stacked: "
-	run_l4_test ipv6 tcp $SOURCE_PORT12 $IPV6_HOST2_VLAN_STACKED 0
+	run_l4_test ipv6 tcp "${SOURCE_PORTS[11]}" $IPV6_HOST2_VLAN_STACKED 0
 
 	# start tcp filtering with valid ports
-	run_xdp_host2 drop-tcp-src $VETH_HOST2 \
-		$SOURCE_PORT1 $SOURCE_PORT2 $SOURCE_PORT3 $SOURCE_PORT4 \
-		$SOURCE_PORT5 $SOURCE_PORT6 $SOURCE_PORT8 $SOURCE_PORT9 \
-		$SOURCE_PORT10 $SOURCE_PORT11 $SOURCE_PORT12 $SOURCE_PORT13 \
-		$SOURCE_PORT14 $SOURCE_PORT15 $SOURCE_PORT16 $SOURCE_PORT17 \
-		$SOURCE_PORT18
+	run_xdp_host2 drop-tcp-src $VETH_HOST2 "${SOURCE_PORTS[@]}"
 
 	# test connection to host 2 from host 1 (should not work)
 	echo -n "  ipv4 test drop: "
-	run_l4_test ipv4 tcp $SOURCE_PORT13 $IPV4_HOST2 1
+	run_l4_test ipv4 tcp "${SOURCE_PORTS[12]}" $IPV4_HOST2 1
 	echo -n "  ipv4 test drop vlan: "
-	run_l4_test ipv4 tcp $SOURCE_PORT14 $IPV4_HOST2_VLAN 1
+	run_l4_test ipv4 tcp "${SOURCE_PORTS[13]}" $IPV4_HOST2_VLAN 1
 	echo -n "  ipv4 test drop vlan stacked: "
-	run_l4_test ipv4 tcp $SOURCE_PORT15 $IPV4_HOST2_VLAN_STACKED 1
+	run_l4_test ipv4 tcp "${SOURCE_PORTS[14]}" $IPV4_HOST2_VLAN_STACKED 1
 	echo -n "  ipv6 test drop: "
-	run_l4_test ipv6 tcp $SOURCE_PORT16 $IPV6_HOST2 1
+	run_l4_test ipv6 tcp "${SOURCE_PORTS[15]}" $IPV6_HOST2 1
 	echo -n "  ipv6 test drop vlan: "
-	run_l4_test ipv6 tcp $SOURCE_PORT17 $IPV6_HOST2_VLAN 1
+	run_l4_test ipv6 tcp "${SOURCE_PORTS[16]}" $IPV6_HOST2_VLAN 1
 	echo -n "  ipv6 test drop vlan stacked: "
-	run_l4_test ipv6 tcp $SOURCE_PORT18 $IPV6_HOST2_VLAN_STACKED 1
+	run_l4_test ipv6 tcp "${SOURCE_PORTS[17]}" $IPV6_HOST2_VLAN_STACKED 1
 
 	# cleanup
 	cleanup_test
@@ -889,56 +857,51 @@ function test_tcp_pass {
 
 	# test connection to host 2 from host 1 (should work)
 	echo -n "  ipv4 setup: "
-	run_l4_test ipv4 tcp $SOURCE_PORT1 $IPV4_HOST2 0
+	run_l4_test ipv4 tcp "${SOURCE_PORTS[0]}" $IPV4_HOST2 0
 	echo -n "  ipv4 setup vlan: "
-	run_l4_test ipv4 tcp $SOURCE_PORT2 $IPV4_HOST2_VLAN 0
+	run_l4_test ipv4 tcp "${SOURCE_PORTS[1]}" $IPV4_HOST2_VLAN 0
 	echo -n "  ipv4 setup vlan stacked: "
-	run_l4_test ipv4 tcp $SOURCE_PORT3 $IPV4_HOST2_VLAN_STACKED 0
+	run_l4_test ipv4 tcp "${SOURCE_PORTS[2]}" $IPV4_HOST2_VLAN_STACKED 0
 	echo -n "  ipv6 setup: "
-	run_l4_test ipv6 tcp $SOURCE_PORT4 $IPV6_HOST2 0
+	run_l4_test ipv6 tcp "${SOURCE_PORTS[3]}" $IPV6_HOST2 0
 	echo -n "  ipv6 setup vlan: "
-	run_l4_test ipv6 tcp $SOURCE_PORT5 $IPV6_HOST2_VLAN 0
+	run_l4_test ipv6 tcp "${SOURCE_PORTS[4]}" $IPV6_HOST2_VLAN 0
 	echo -n "  ipv6 setup vlan stacked: "
-	run_l4_test ipv6 tcp $SOURCE_PORT6 $IPV6_HOST2_VLAN_STACKED 0
+	run_l4_test ipv6 tcp "${SOURCE_PORTS[5]}" $IPV6_HOST2_VLAN_STACKED 0
 
 	# start tcp filtering with invalid port
 	run_xdp_host2 pass-tcp-src $VETH_HOST2 $SOURCE_PORT_INVALID
 
 	# test connection to host 2 from host 1 (should not work)
 	echo -n "  ipv4 test drop: "
-	run_l4_test ipv4 tcp $SOURCE_PORT7 $IPV4_HOST2 1
+	run_l4_test ipv4 tcp "${SOURCE_PORTS[6]}" $IPV4_HOST2 1
 	echo -n "  ipv4 test drop vlan: "
-	run_l4_test ipv4 tcp $SOURCE_PORT8 $IPV4_HOST2_VLAN 1
+	run_l4_test ipv4 tcp "${SOURCE_PORTS[7]}" $IPV4_HOST2_VLAN 1
 	echo -n "  ipv4 test drop vlan stacked: "
-	run_l4_test ipv4 tcp $SOURCE_PORT9 $IPV4_HOST2_VLAN_STACKED 1
+	run_l4_test ipv4 tcp "${SOURCE_PORTS[8]}" $IPV4_HOST2_VLAN_STACKED 1
 	echo -n "  ipv6 test drop: "
-	run_l4_test ipv6 tcp $SOURCE_PORT10 $IPV6_HOST2 1
+	run_l4_test ipv6 tcp "${SOURCE_PORTS[9]}" $IPV6_HOST2 1
 	echo -n "  ipv6 test drop vlan: "
-	run_l4_test ipv6 tcp $SOURCE_PORT11 $IPV6_HOST2_VLAN 1
+	run_l4_test ipv6 tcp "${SOURCE_PORTS[10]}" $IPV6_HOST2_VLAN 1
 	echo -n "  ipv6 test drop vlan stacked: "
-	run_l4_test ipv6 tcp $SOURCE_PORT12 $IPV6_HOST2_VLAN_STACKED 1
+	run_l4_test ipv6 tcp "${SOURCE_PORTS[11]}" $IPV6_HOST2_VLAN_STACKED 1
 
 	# start tcp filtering with valid ports
-	run_xdp_host2 pass-tcp-src $VETH_HOST2 \
-		$SOURCE_PORT1 $SOURCE_PORT2 $SOURCE_PORT3 $SOURCE_PORT4 \
-		$SOURCE_PORT5 $SOURCE_PORT6 $SOURCE_PORT8 $SOURCE_PORT9 \
-		$SOURCE_PORT10 $SOURCE_PORT11 $SOURCE_PORT12 $SOURCE_PORT13 \
-		$SOURCE_PORT14 $SOURCE_PORT15 $SOURCE_PORT16 $SOURCE_PORT17 \
-		$SOURCE_PORT18
+	run_xdp_host2 pass-tcp-src $VETH_HOST2 "${SOURCE_PORTS[@]}"
 
 	# test connection to host 2 from host 1 (should work)
 	echo -n "  ipv4 test pass: "
-	run_l4_test ipv4 tcp $SOURCE_PORT13 $IPV4_HOST2 0
+	run_l4_test ipv4 tcp "${SOURCE_PORTS[12]}" $IPV4_HOST2 0
 	echo -n "  ipv4 test pass vlan: "
-	run_l4_test ipv4 tcp $SOURCE_PORT14 $IPV4_HOST2_VLAN 0
+	run_l4_test ipv4 tcp "${SOURCE_PORTS[13]}" $IPV4_HOST2_VLAN 0
 	echo -n "  ipv4 test pass vlan stacked: "
-	run_l4_test ipv4 tcp $SOURCE_PORT15 $IPV4_HOST2_VLAN_STACKED 0
+	run_l4_test ipv4 tcp "${SOURCE_PORTS[14]}" $IPV4_HOST2_VLAN_STACKED 0
 	echo -n "  ipv6 test pass: "
-	run_l4_test ipv6 tcp $SOURCE_PORT16 $IPV6_HOST2 0
+	run_l4_test ipv6 tcp "${SOURCE_PORTS[15]}" $IPV6_HOST2 0
 	echo -n "  ipv6 test pass vlan: "
-	run_l4_test ipv6 tcp $SOURCE_PORT17 $IPV6_HOST2_VLAN 0
+	run_l4_test ipv6 tcp "${SOURCE_PORTS[16]}" $IPV6_HOST2_VLAN 0
 	echo -n "  ipv6 test pass vlan stacked: "
-	run_l4_test ipv6 tcp $SOURCE_PORT18 $IPV6_HOST2_VLAN_STACKED 0
+	run_l4_test ipv6 tcp "${SOURCE_PORTS[17]}" $IPV6_HOST2_VLAN_STACKED 0
 
 	# cleanup
 	cleanup_test
