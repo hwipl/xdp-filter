@@ -53,3 +53,54 @@ disables packet filtering.
 `load` attaches the XDP program found in the ELF section of file to the network
 device. This can be used for debugging and is not needed for configuring packet
 filtering.
+
+## Examples
+
+Dropping packets with MAC source addresses `02:ab:cc:ba:20:01` and
+`02:ab:cc:ba:20:02` and passing all other packets on device `veth1`:
+
+```console
+# ./xdp_filter_user drop-eth-src veth1 02:ab:cc:ba:20:01 02:ab:cc:ba:20:02
+```
+
+Passing packets with MAC source addresses `02:ab:cc:ba:20:01` and
+`02:ab:cc:ba:20:02` and dropping all other packets on device `veth1`:
+
+```console
+# ./xdp_filter_user pass-eth-src veth1 02:ab:cc:ba:20:01 02:ab:cc:ba:20:02
+```
+
+Passing packets with VLAN IDs `100`, `200` and `300` and dropping all other
+packets on device `veth1`:
+
+```console
+# ./xdp_filter_user pass-vlan veth1 100 200 300
+```
+
+Dropping packets with IPv4 source address `192.168.1.10` and passing all other
+packets on device `veth1`:
+
+```console
+# ./xdp_filter_user drop-ipv4-src veth1 192.168.1.10
+```
+
+Passing packets with IPv6 source address `fe80::1` and dropping all other
+packets on device `veth1`:
+
+```console
+# ./xdp_filter_user pass-ipv6-src veth1 fe80::1
+```
+
+Dropping packets with UDP source ports `2000` and `2001` and passing all other
+packets on device `veth1`:
+
+```console
+# ./xdp_filter_user drop-udp-src veth1 2000 2001
+```
+
+Passing packets with TCP source ports `2000` and `2001` and dropping all other
+packets on device `veth1`:
+
+```console
+# ./xdp_filter_user pass-tcp-src veth1 2000 2001
+```
