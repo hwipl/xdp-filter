@@ -1,5 +1,10 @@
 # xdp-filter
 
+Simple implementation of a packet filter using eBPF and XDP on Linux. It
+supports either dropping specific types of packets and passing everything else
+or passing specific types of packets and dropping everything else. See usage
+and examples below for more information about supported filtering modes.
+
 ## Building
 
 Build requirements:
